@@ -78,97 +78,70 @@
 ---
 
 
-### Q2. What Happens When I Submit a Spark Job in Cluster Mode?
+### Q2. What Happens When I Submit a Spark Job in Cluster Mode & Client Mode?
 
-#### 📌 Job Submission Flow
+# ⚡ Spark Execution Flow — Cluster Mode vs Client Mode
 
-```bash
-spark-submit \
-  --class pkg.class \
-  --master yarn \
-  --deploy-mode cluster \
-  my_spark_app.jar customer_table temp_path
 ```
-
-When you submit a **Spark job** to a cluster (YARN/Mesos/K8s in **cluster mode**), here’s the sequence:
-
-#### 1️⃣ Spark Submit Command
-
-* You run `spark-submit` 🖥️
-* The **Spark Submit client** prepares:
-
-  * Application jar(s) 📦
-  * Dependencies (jars, files, configs) ⚙️
-  * Command-line args
-
-#### 2️⃣ Contact with Resource Manager (YARN)
-
-* Since deploy mode = `cluster`, the **driver** itself will run inside the cluster.
-* `spark-submit` contacts **YARN Resource Manager** 🗂️ to request resources.
-* RM talks to **NameNode** 📑 (for input metadata) if needed.
-
-#### 3️⃣ Launch Application Master / Driver
-
-* RM allocates a container 🏗️ and launches **Application Master (AM)**.
-* In Spark, the AM is responsible for starting the **Driver** program 🚗 inside the cluster.
-* **Driver = Brain of Spark job** (parsing, DAG building, scheduling).
-
-#### 4️⃣ Driver Initialization
-
-* Driver:
-
-  * Reads job configuration 📝
-  * Builds a **DAG (Directed Acyclic Graph)** of transformations & actions 🔗
-  * Prepares execution plan
-
-#### 5️⃣ Driver Registers with RM
-
-* Driver program 📡 registers with Resource Manager.
-* Requests containers for **executors** from RM.
-
-#### 6️⃣ Executor Containers Allocation
-
-* RM negotiates with **Node Managers** 🖥️ to start **Executor containers**.
-* Executors are launched in cluster nodes with:
-
-  * Spark runtime 🏃
-  * Required jars & dependencies
-
-#### 7️⃣ Executors Register with Driver
-
-* Executors 📦 register themselves back to the **Driver**.
-* Cluster is now ready to execute tasks.
-
-#### 8️⃣ Task Scheduling & Execution
-
-* Driver splits job into **stages** 🪜 and **tasks**.
-* Sends tasks to executors for parallel execution ⚡.
-
-
-#### 9️⃣ Executors Run Tasks
-
-* Executors process data (from HDFS / external sources).
-* Store intermediate data in memory/disk 🔄.
-* Send results/status back to Driver.
-
-### 🔟 Monitoring & Status Updates
-
-* Executors → Driver → Application Master → Resource Manager → Client 📡.
-* Status updates flow continuously.
-
-#### 1️⃣1️⃣ Job Completion
-
-* When all tasks ✅ complete:
-
-  * Executors shut down 📴
-  * Driver exits gracefully 🚗💨
-  * Application Master de-registers from RM
-
-
-✅ **Key Difference from YARN MapReduce:**
-
-* In YARN MR → **Application Master manages Mappers/Reducers**.
-* In Spark → **Driver manages Executors & tasks (DAG execution)**.
+⚡ Cluster Mode                                      💻 Client Mode
+------------------------------------------------------------------------------------------------
+🧑‍💻 Client (spark-submit)                          🧑‍💻 Client (spark-submit)
+   └─> 📦 Application Master (YARN/K8s/Mesos)          └─> 🚗 Driver (runs on client machine)
+       • Client uploads jars/configs to staging           • Driver is a local JVM:
+       • RM/AM take over lifecycle of Driver                builds DAG, schedules tasks, tracks job state
+       • Client can safely disconnect                     • Client must stay alive
+       |
+       v                                                  |
+🚗 Driver (runs inside cluster)                           v
+   • Builds DAG, schedules tasks, tracks job state    🔄 Build DAG (stages & tasks)
+   • Runs inside AM container                            • Plan execution (stages, tasks, partitions)
+       |
+       v                                                  |
+🔄 Build DAG (stages & tasks)                             v
+   • Plan execution (stages, tasks, partitions)       🤝 Driver contacts Resource Manager
+                                                        (YARN / K8s / Mesos)
+       |                                                • Requests executor containers/resources
+       v                                                • May upload jars/configs to HDFS staging
+🤝 Driver contacts Resource Manager
+   (YARN / K8s / Mesos)                                   |
+   • Driver requests executor containers/resources        v
+       |                                             🖥️ Node Managers (across cluster)
+       v                                                └─> 📦 Executors launched
+🖥️ Node Managers (across cluster)                          • Executors are JVMs on worker nodes
+   └─> 📦 Executors launched                               • Launched with required jars/configs
+       • JVMs on worker nodes
+       • Launched with jars/configs from staging           |
+       |                                                   v
+       v                                             📂 Executors register with Driver (over network)
+📂 Executors register with Driver (inside cluster)         • Executors open RPC/Netty connections
+   • Fast local network registration                       • Heartbeats & registration info flow
+       |
+       v                                                   |
+⚡ Driver schedules tasks → Executors run them              v
+   • Driver assigns tasks based on locality/resources ⚡ Driver schedules tasks → Executors run them
+   • Tasks execute in parallel on executors               • Driver assigns tasks based on locality/resources
+                                                          • Tasks execute in parallel on executors
+       |
+       v                                                   |
+🗄️ Executors process data (HDFS / external sources)        v
+   • Read HDFS/DBs/S3, cache partitions in memory/disk 🗄️ Executors process data (HDFS / external sources)
+   • Shuffle intermediate data                            • Read HDFS/DBs/S3, cache partitions in memory/disk
+                                                          • Shuffle intermediate data
+       |
+       v                                                   |
+📡 Executors send status & results → Driver                v
+   (in cluster)                                      📡 Executors send status & results → Driver
+   • Progress, metrics, failures reported                (on client)
+   • Driver/AM may retry failed tasks                    • Progress, metrics, failures sent to Driver
+                                                          • Driver may retry failed tasks / reschedule
+       |
+       v                                                   |
+✅ Job Completion                                          v
+   └─> Executors shut down                           ✅ Job Completion
+   └─> Driver exits (in cluster)                        └─> Executors shut down
+   └─> AM deregisters from RM                           └─> Driver exits (on client)
+                                                         └─> Resources released by RM
+```
 
 ---
 
