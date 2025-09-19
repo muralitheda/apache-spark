@@ -336,15 +336,15 @@ df_dedup.write.saveAsTable("hive_table")
 
 #### 🔑 Key Internals Summary
 
-| Component                 | Role in CSV → Dedup → Hive                                                               | Icon |
-| ------------------------- | ---------------------------------------------------------------------------------------- | ---- |
-| **Logical Plan**          | Abstract representation: ReadCSV → Deduplicate → WriteHiveTable                          | 🧠   |
-| **Catalyst Optimizer**    | Resolves columns/types, optimizes operations (filter pushdown, projection pruning)       | ✨    |
-| **Physical Plan**         | Maps logical plan to real operations: RDD/DataFrame transformations, shuffle, partitions | 🏗️  |
-| **Tungsten**              | Low-level execution engine: off-heap memory, code generation, binary row format          | ⚡    |
-| **Driver**                | Builds plans, schedules tasks, coordinates execution, talks to Hive Metastore            | 🚗   |
-| **Executors**             | Read HDFS blocks, run transformations, shuffle for dedup, write results, report status   | 📦   |
-| **Resource Manager / AM** | Allocates containers, manages Driver lifecycle                                           | 🗂️  |
+| Component                     | Role in CSV → Dedup → Hive                                                               |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| 🧠 **Logical Plan**           | Abstract representation: ReadCSV → Deduplicate → WriteHiveTable                          |
+| ✨ **Catalyst Optimizer**      | Resolves columns/types, optimizes operations (filter pushdown, projection pruning)       |
+| 🏗️ **Physical Plan**         | Maps logical plan to real operations: RDD/DataFrame transformations, shuffle, partitions |
+| ⚡ **Tungsten**                | Low-level execution engine: off-heap memory, code generation, binary row format          |
+| 🚗 **Driver**                 | Builds plans, schedules tasks, coordinates execution, talks to Hive Metastore            |
+| 📦 **Executors**              | Read HDFS blocks, run transformations, shuffle for dedup, write results, report status   |
+| 🗂️ **Resource Manager / AM** | Allocates containers, manages Driver lifecycle                                           |
 
 ---
 
