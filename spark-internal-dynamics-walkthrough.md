@@ -218,7 +218,7 @@
 ---
 
 
-### Q5. I would like to read the csv file from HDFS location, reomove duplicates and write into Hive table using Spark program. What happens internally?
+### Q5. I would like to read the csv file from a HDFS location, then remove duplicates and write into Hive table using Spark program.   What happens internally if we submit this spark job?
 
  ⚡ Spark Internals — Cluster Mode with Catalyst & Tungsten
 
