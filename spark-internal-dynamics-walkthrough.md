@@ -1,4 +1,4 @@
-# Hadoop, YARN & Spark
+# 🐘 Hadoop, 🧵 YARN & ⚡ Spark
 
 ### Q1. What Happens When you Submit a Job in YARN?
 
