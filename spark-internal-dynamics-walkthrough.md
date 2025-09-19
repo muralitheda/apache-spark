@@ -77,9 +77,6 @@
 
 ---
 
-Perfect 👍 Let’s do the **Spark job submission in Cluster Mode** in the same style as the YARN job flow I gave you earlier.
-
----
 
 ### Q2. What Happens When I Submit a Spark Job in Cluster Mode?
 
