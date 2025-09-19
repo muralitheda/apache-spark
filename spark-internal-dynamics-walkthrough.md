@@ -216,3 +216,135 @@
 * **Spark Client Mode:** Client → launches Driver locally → Driver requests executors from RM → Executors run tasks → Driver collects results → Job complete.
 
 ---
+
+
+### Q5. I would like to read the csv file from HDFS location, reomove duplicates and write into Hive table using Spark program. What happens internally?
+
+ ⚡ Spark Internals — Cluster Mode with Catalyst & Tungsten
+
+#### 1. **Job Submission** 📨
+
+* `spark-submit` in **cluster mode**.
+* Client uploads:
+
+  * 📦 Application JAR / Py file
+  * ⚙️ Config files, Hive configs, dependencies
+* Client hands off control to **🗂️ Resource Manager** and can safely disconnect. ✅
+
+#### 2. **Driver Launch** 🚗
+
+* **📦 Application Master (AM)** starts a **Driver** container in the cluster.
+* Driver acts as the **master orchestrator**:
+
+  * 📜 Reads the application code
+  * 🧩 Builds **logical plan** from DataFrame / Dataset operations
+
+#### 3. **Logical Plan Creation** 🧠
+
+* Program:
+
+```python
+df = spark.read.csv("hdfs://...")  
+df_dedup = df.dropDuplicates()  
+df_dedup.write.saveAsTable("hive_table")
+```
+
+* **Driver parses this into a logical plan**:
+
+  * `ReadCSV → Deduplicate → WriteHiveTable`
+  * At this stage, **no physical execution yet**.
+
+#### 4. **Catalyst Optimizer** ✨
+
+* Catalyst transforms the logical plan:
+
+  * 🔍 **Analysis**: resolves column names, types, Hive metadata
+  * ♻️ **Logical Optimizations**:
+
+    * Push down filters
+    * Combine projections
+    * Remove redundant computations
+* Result: **optimized logical plan** ✅
+
+#### 5. **Physical Plan Generation** 🏗️
+
+* Catalyst converts the optimized logical plan to **physical plans**:
+
+  * Maps operations to **RDD/DataFrame transformations**:
+
+    * `CSV → Rows → Deduplicate → Write to HDFS`
+  * Estimates **costs** (shuffle size, partitioning)
+* Driver chooses **the best physical plan** for execution.
+
+#### 6. **Tungsten Execution** ⚡
+
+* Optimizes **physical execution**:
+
+  * 🧠 **Memory Management**: off-heap storage reduces GC overhead
+  * 🏎️ **Code Generation**: Java bytecode for transformations
+  * 🗄️ **Binary Processing**: efficient in-memory row format
+* Executors run transformations like `dropDuplicates()` and Hive write efficiently.
+
+#### 7. **Reading CSV from HDFS** 🗂️
+
+* Driver schedules tasks to **Executors**:
+
+  * Executors read HDFS blocks (data-locality optimized)
+  * CSV parsing is **Tungsten-optimized**
+* Executors create **internal row objects** for Spark SQL engine.
+
+
+#### 8. **Deduplication** 🔄
+
+* `dropDuplicates()` triggers a **shuffle**:
+
+  * Spark partitions rows by hash of all columns
+  * Executors exchange rows across network
+  * Tungsten ensures efficient in-memory aggregation
+* Result: each partition contains **unique rows**.
+
+
+#### 9. **Writing to Hive Table** 🏛️
+
+* Physical plan includes:
+
+  * Partition writing (if table is partitioned)
+  * File format (Parquet/ORC)
+* Executors write data to HDFS
+* Hive Metastore updated by Driver/Hive connector
+* Tungsten optimizes serialization and write buffers.
+
+
+#### 10. **Execution Tracking** 📊
+
+* **Driver** inside cluster:
+
+  * Tracks task progress
+  * Handles retries for failed tasks
+  * Maintains **Spark UI**
+* **Executors**:
+
+  * Run physical plan tasks
+  * Send metrics & status back to Driver
+
+#### 11. **Job Completion** ✅
+
+* Executors shut down
+* Driver exits (inside cluster)
+* AM deregisters from **Resource Manager**
+* Job finishes successfully
+
+# 🔑 Key Internals Summary
+
+| Component                 | Role in CSV → Dedup → Hive                                                               | Icon |
+| ------------------------- | ---------------------------------------------------------------------------------------- | ---- |
+| **Logical Plan**          | Abstract representation: ReadCSV → Deduplicate → WriteHiveTable                          | 🧠   |
+| **Catalyst Optimizer**    | Resolves columns/types, optimizes operations (filter pushdown, projection pruning)       | ✨    |
+| **Physical Plan**         | Maps logical plan to real operations: RDD/DataFrame transformations, shuffle, partitions | 🏗️  |
+| **Tungsten**              | Low-level execution engine: off-heap memory, code generation, binary row format          | ⚡    |
+| **Driver**                | Builds plans, schedules tasks, coordinates execution, talks to Hive Metastore            | 🚗   |
+| **Executors**             | Read HDFS blocks, run transformations, shuffle for dedup, write results, report status   | 📦   |
+| **Resource Manager / AM** | Allocates containers, manages Driver lifecycle                                           | 🗂️  |
+
+---
+
