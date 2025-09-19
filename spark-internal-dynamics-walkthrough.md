@@ -78,75 +78,116 @@
 ---
 
 
-### Q2. What Happens When I Submit a Spark Job in Cluster Mode & Client Mode?
+### Q2. What Happens When I Submit a Spark Job in **Cluster** Mode?
 
-# ⚡ Spark Execution Flow — Cluster Mode vs Client Mode
+⚡ Spark Cluster Mode — Detailed Flow
+
+```pgsql
+🧑‍💻 Client (spark-submit)
+   └─> 📦 Application Master (YARN) / Cluster Manager
+          • Client uploads app jars & staging (HDFS) then can safely disconnect
+          • RM/AM take over lifecycle of the Driver
+          |
+          v
+🚗 Driver (runs inside cluster)
+   • Driver is launched inside AM container in cluster
+   • Builds DAG, schedules tasks, tracks job state (inside cluster)
+          |
+          v
+     🔄 Build DAG (stages & tasks)
+          • Plan execution (stages, tasks, partitions)
+          |
+          v
+🤝 Driver contacts Resource Manager (YARN / K8s / Mesos)
+          • Driver requests executor containers/resources via RM
+          |
+          v
+🖥️ Node Managers (across cluster)
+   └─> 📦 Executors launched
+          • Executors are long-lived JVMs on worker nodes
+          • Launched with required jars/configs from staging
+          |
+          v
+📂 Executors register with Driver (inside cluster)
+          • Fast local network registration (no external client hop)
+          |
+          v
+⚡ Driver schedules tasks → Executors run them
+          • Driver assigns tasks based on locality & resources
+          • Tasks execute in parallel on executors
+          |
+          v
+🗄️ Executors process data (HDFS / external sources)
+          • Read HDFS/DBs/S3, cache partitions in memory/disk, do shuffle
+          |
+          v
+📡 Executors send status & results → Driver (in cluster)
+          • Progress, metrics, task failures reported to Driver/AM/RM
+          |
+          v
+✅ Job Completion
+   └─> Executors shut down
+   └─> Driver exits (in cluster)
+   └─> AM deregisters from RM; resources released
 
 ```
-⚡ Cluster Mode                                      💻 Client Mode
-------------------------------------------------------------------------------------------------
-🧑‍💻 Client (spark-submit)                          🧑‍💻 Client (spark-submit)
-   └─> 📦 Application Master (YARN/K8s/Mesos)          └─> 🚗 Driver (runs on client machine)
-       • Client uploads jars/configs to staging           • Driver is a local JVM:
-       • RM/AM take over lifecycle of Driver                builds DAG, schedules tasks, tracks job state
-       • Client can safely disconnect                     • Client must stay alive
-       |
-       v                                                  |
-🚗 Driver (runs inside cluster)                           v
-   • Builds DAG, schedules tasks, tracks job state    🔄 Build DAG (stages & tasks)
-   • Runs inside AM container                            • Plan execution (stages, tasks, partitions)
-       |
-       v                                                  |
-🔄 Build DAG (stages & tasks)                             v
-   • Plan execution (stages, tasks, partitions)       🤝 Driver contacts Resource Manager
-                                                        (YARN / K8s / Mesos)
-       |                                                • Requests executor containers/resources
-       v                                                • May upload jars/configs to HDFS staging
-🤝 Driver contacts Resource Manager
-   (YARN / K8s / Mesos)                                   |
-   • Driver requests executor containers/resources        v
-       |                                             🖥️ Node Managers (across cluster)
-       v                                                └─> 📦 Executors launched
-🖥️ Node Managers (across cluster)                          • Executors are JVMs on worker nodes
-   └─> 📦 Executors launched                               • Launched with required jars/configs
-       • JVMs on worker nodes
-       • Launched with jars/configs from staging           |
-       |                                                   v
-       v                                             📂 Executors register with Driver (over network)
-📂 Executors register with Driver (inside cluster)         • Executors open RPC/Netty connections
-   • Fast local network registration                       • Heartbeats & registration info flow
-       |
-       v                                                   |
-⚡ Driver schedules tasks → Executors run them              v
-   • Driver assigns tasks based on locality/resources ⚡ Driver schedules tasks → Executors run them
-   • Tasks execute in parallel on executors               • Driver assigns tasks based on locality/resources
-                                                          • Tasks execute in parallel on executors
-       |
-       v                                                   |
-🗄️ Executors process data (HDFS / external sources)        v
-   • Read HDFS/DBs/S3, cache partitions in memory/disk 🗄️ Executors process data (HDFS / external sources)
-   • Shuffle intermediate data                            • Read HDFS/DBs/S3, cache partitions in memory/disk
-                                                          • Shuffle intermediate data
-       |
-       v                                                   |
-📡 Executors send status & results → Driver                v
-   (in cluster)                                      📡 Executors send status & results → Driver
-   • Progress, metrics, failures reported                (on client)
-   • Driver/AM may retry failed tasks                    • Progress, metrics, failures sent to Driver
-                                                          • Driver may retry failed tasks / reschedule
-       |
-       v                                                   |
-✅ Job Completion                                          v
-   └─> Executors shut down                           ✅ Job Completion
-   └─> Driver exits (in cluster)                        └─> Executors shut down
-   └─> AM deregisters from RM                           └─> Driver exits (on client)
-                                                         └─> Resources released by RM
+---
+
+### Q3. What Happens When I Submit a Spark Job in **Client** Mode?
+
+⚡ Spark Client Mode — Detailed Flow
+
+```pgsql
+🧑‍💻 Client (spark-submit)
+   └─> 🚗 Driver (runs on client machine)
+          • Driver is a local JVM: builds DAG, schedules tasks, tracks job state
+          • Client machine must remain reachable and healthy
+          |
+          v
+     🔄 Build DAG (stages & tasks)
+          • Plan execution (stages, tasks, partitions)
+          |
+          v
+🤝 Driver contacts Resource Manager (YARN / K8s / Mesos)
+          • Requests executor containers/resources
+          • May upload jars/configs to staging on HDFS
+          |
+          v
+🖥️ Node Managers (across cluster)
+   └─> 📦 Executors launched
+          • Executors are long-lived JVMs on worker nodes
+          • Launched with required jars/configs
+          |
+          v
+📂 Executors register with Driver (over network)
+          • Executors open RPC/Netty connections to Driver
+          • Heartbeats & registration info flow over network
+          |
+          v
+⚡ Driver schedules tasks → Executors run them
+          • Driver assigns tasks based on locality & resources
+          • Tasks execute in parallel on executors
+          |
+          v
+🗄️ Executors process data (HDFS / external sources)
+          • Read HDFS/DBs/S3, cache partitions in memory/disk, do shuffle
+          |
+          v
+📡 Executors send status & results → Driver (on client)
+          • Progress, metrics, task failures sent to Driver
+          • Driver may retry failed tasks / reschedule
+          |
+          v
+✅ Job Completion
+   └─> Executors shut down
+   └─> Driver exits (on client)
+   └─> Resources released by RM
+
 ```
 
 ---
 
-
-### Q3. Comparision between YARN MapReduce vs Spark Cluster Mode vs Spark Client Mode
+### Q4. Comparision between YARN MapReduce vs Spark Cluster Mode vs Spark Client Mode
 
 | Aspect                       | 🗂️ **YARN MapReduce (MR)**                            | ⚡ **Spark — Cluster Mode**                                                                 | 💻 **Spark — Client Mode**                                                                        |
 | ---------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
