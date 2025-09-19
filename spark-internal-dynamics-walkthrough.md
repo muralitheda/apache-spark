@@ -229,15 +229,19 @@
 
   * 📦 Application JAR / Py file
   * ⚙️ Config files, Hive configs, dependencies
-* Client hands off control to **🗂️ Resource Manager** and can safely disconnect. ✅
+* Client hands off control to **🗂️ Resource Manager (RM)** and can safely disconnect. ✅
+
+---
 
 #### 2. **Driver Launch** 🚗
 
 * **📦 Application Master (AM)** starts a **Driver** container in the cluster.
-* Driver acts as the **master orchestrator**:
+* Driver acts as **master orchestrator**:
 
-  * 📜 Reads the application code
-  * 🧩 Builds **logical plan** from DataFrame / Dataset operations
+  * 📜 Reads application code
+  * 🧩 Builds **logical plan** from DataFrame/Dataset operations
+
+---
 
 #### 3. **Logical Plan Creation** 🧠
 
@@ -249,90 +253,123 @@ df_dedup = df.dropDuplicates()
 df_dedup.write.saveAsTable("hive_table")
 ```
 
-* **Driver parses this into a logical plan**:
+* Driver parses it into **logical plan**:
 
   * `ReadCSV → Deduplicate → WriteHiveTable`
-  * At this stage, **no physical execution yet**.
+  * Represents **abstract operations**, no physical execution yet
+* DAG (Directed Acyclic Graph) for Spark is **implicitly created at this stage**, representing the transformations as nodes:
+
+  * Node 1: Read CSV
+  * Node 2: Deduplicate
+  * Node 3: Write Hive Table
+
+---
 
 #### 4. **Catalyst Optimizer** ✨
 
-* Catalyst transforms the logical plan:
+* Catalyst applies transformations to the logical plan:
 
-  * 🔍 **Analysis**: resolves column names, types, Hive metadata
+  * 🔍 **Analysis**: resolves column names, data types, Hive metadata
   * ♻️ **Logical Optimizations**:
 
-    * Push down filters
-    * Combine projections
+    * Filter pushdown (if any)
+    * Projection pruning
     * Remove redundant computations
-* Result: **optimized logical plan** ✅
+* Result: **optimized logical plan**
+* DAG is **updated with optimized operations**, ready for physical planning ✅
+
+---
 
 #### 5. **Physical Plan Generation** 🏗️
 
-* Catalyst converts the optimized logical plan to **physical plans**:
+* Catalyst converts optimized logical plan into **physical plan(s)**:
 
-  * Maps operations to **RDD/DataFrame transformations**:
+  * Maps logical nodes to **RDD/DataFrame transformations**
 
-    * `CSV → Rows → Deduplicate → Write to HDFS`
-  * Estimates **costs** (shuffle size, partitioning)
-* Driver chooses **the best physical plan** for execution.
+    * Example: `CSV → Rows → Deduplicate → Write to HDFS`
+  * Decides:
+
+    * Stage boundaries
+    * Task partitioning
+    * Shuffles and data movement
+* **Driver chooses the most efficient plan** for execution
+* DAG now **represents stages**:
+
+  * Stage 1: Read CSV
+  * Stage 2: Shuffle & Deduplicate
+  * Stage 3: Write to Hive
+
+---
 
 #### 6. **Tungsten Execution** ⚡
 
-* Optimizes **physical execution**:
+* Optimizes physical execution:
 
   * 🧠 **Memory Management**: off-heap storage reduces GC overhead
   * 🏎️ **Code Generation**: Java bytecode for transformations
   * 🗄️ **Binary Processing**: efficient in-memory row format
-* Executors run transformations like `dropDuplicates()` and Hive write efficiently.
+* Tasks running on executors are now **highly optimized** for CPU & memory efficiency
+* DAG nodes now correspond to **actual physical tasks** executed by executors
+
+---
 
 #### 7. **Reading CSV from HDFS** 🗂️
 
-* Driver schedules tasks to **Executors**:
+* Driver schedules **tasks** from Stage 1 to **Executors**
+* Executors:
 
-  * Executors read HDFS blocks (data-locality optimized)
-  * CSV parsing is **Tungsten-optimized**
-* Executors create **internal row objects** for Spark SQL engine.
+  * Read HDFS blocks (data-locality optimized)
+  * Parse CSV rows into **internal row objects** (Tungsten binary format)
+* DAG shows **parallelism per partition**, with tasks mapped to executors
 
+---
 
 #### 8. **Deduplication** 🔄
 
-* `dropDuplicates()` triggers a **shuffle**:
+* `dropDuplicates()` triggers **Stage 2** and a **shuffle**:
 
-  * Spark partitions rows by hash of all columns
-  * Executors exchange rows across network
-  * Tungsten ensures efficient in-memory aggregation
-* Result: each partition contains **unique rows**.
+  * Partitions rows by hash of all columns
+  * Executors exchange rows over network
+  * Tungsten optimizes in-memory aggregation & minimizes serialization
+* DAG visualizes **shuffle edges** between stages, representing data movement
 
+---
 
 #### 9. **Writing to Hive Table** 🏛️
 
-* Physical plan includes:
+* Stage 3 of DAG executes:
 
-  * Partition writing (if table is partitioned)
-  * File format (Parquet/ORC)
-* Executors write data to HDFS
-* Hive Metastore updated by Driver/Hive connector
-* Tungsten optimizes serialization and write buffers.
+  * Executors write partitions to HDFS (managed/external table)
+  * Hive Metastore updated by Driver/Hive connector
+  * Tungsten optimizes serialization and write buffers
+* DAG edges from Stage 2 → Stage 3 ensure **task dependencies** are respected
 
+---
 
 #### 10. **Execution Tracking** 📊
 
-* **Driver** inside cluster:
+* Driver tracks:
 
-  * Tracks task progress
-  * Handles retries for failed tasks
-  * Maintains **Spark UI**
-* **Executors**:
+  * Task progress
+  * Stage completion
+  * Retries for failed tasks
+  * Maintains **Spark UI** with DAG visualization
+* Executors:
 
   * Run physical plan tasks
-  * Send metrics & status back to Driver
+  * Send metrics & status to Driver
+* DAG allows **Driver to schedule tasks efficiently** while monitoring execution
+
+---
 
 #### 11. **Job Completion** ✅
 
 * Executors shut down
 * Driver exits (inside cluster)
 * AM deregisters from **Resource Manager**
-* Job finishes successfully
+* DAG execution is complete, job finishes successfully
+
+---
 
 #### 🔑 Key Internals Summary
 
