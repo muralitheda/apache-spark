@@ -231,7 +231,7 @@
   * ⚙️ Config files, Hive configs, dependencies
 * Client hands off control to **🗂️ Resource Manager (RM)** and can safely disconnect. ✅
 
----
+
 
 #### 2. **Driver Launch** 🚗
 
@@ -241,7 +241,7 @@
   * 📜 Reads application code
   * 🧩 Builds **logical plan** from DataFrame/Dataset operations
 
----
+
 
 #### 3. **Logical Plan Creation** 🧠
 
@@ -263,7 +263,7 @@ df_dedup.write.saveAsTable("hive_table")
   * Node 2: Deduplicate
   * Node 3: Write Hive Table
 
----
+
 
 #### 4. **Catalyst Optimizer** ✨
 
@@ -278,7 +278,7 @@ df_dedup.write.saveAsTable("hive_table")
 * Result: **optimized logical plan**
 * DAG is **updated with optimized operations**, ready for physical planning ✅
 
----
+
 
 #### 5. **Physical Plan Generation** 🏗️
 
@@ -299,7 +299,7 @@ df_dedup.write.saveAsTable("hive_table")
   * Stage 2: Shuffle & Deduplicate
   * Stage 3: Write to Hive
 
----
+
 
 #### 6. **Tungsten Execution** ⚡
 
@@ -311,7 +311,6 @@ df_dedup.write.saveAsTable("hive_table")
 * Tasks running on executors are now **highly optimized** for CPU & memory efficiency
 * DAG nodes now correspond to **actual physical tasks** executed by executors
 
----
 
 #### 7. **Reading CSV from HDFS** 🗂️
 
@@ -322,7 +321,6 @@ df_dedup.write.saveAsTable("hive_table")
   * Parse CSV rows into **internal row objects** (Tungsten binary format)
 * DAG shows **parallelism per partition**, with tasks mapped to executors
 
----
 
 #### 8. **Deduplication** 🔄
 
@@ -333,7 +331,7 @@ df_dedup.write.saveAsTable("hive_table")
   * Tungsten optimizes in-memory aggregation & minimizes serialization
 * DAG visualizes **shuffle edges** between stages, representing data movement
 
----
+
 
 #### 9. **Writing to Hive Table** 🏛️
 
@@ -344,7 +342,6 @@ df_dedup.write.saveAsTable("hive_table")
   * Tungsten optimizes serialization and write buffers
 * DAG edges from Stage 2 → Stage 3 ensure **task dependencies** are respected
 
----
 
 #### 10. **Execution Tracking** 📊
 
@@ -360,7 +357,6 @@ df_dedup.write.saveAsTable("hive_table")
   * Send metrics & status to Driver
 * DAG allows **Driver to schedule tasks efficiently** while monitoring execution
 
----
 
 #### 11. **Job Completion** ✅
 
@@ -369,7 +365,6 @@ df_dedup.write.saveAsTable("hive_table")
 * AM deregisters from **Resource Manager**
 * DAG execution is complete, job finishes successfully
 
----
 
 #### 🔑 Key Internals Summary
 
