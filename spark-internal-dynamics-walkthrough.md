@@ -334,7 +334,7 @@ df_dedup.write.saveAsTable("hive_table")
 * AM deregisters from **Resource Manager**
 * Job finishes successfully
 
-# 🔑 Key Internals Summary
+#### 🔑 Key Internals Summary
 
 | Component                 | Role in CSV → Dedup → Hive                                                               | Icon |
 | ------------------------- | ---------------------------------------------------------------------------------------- | ---- |
