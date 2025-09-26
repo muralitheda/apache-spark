@@ -380,7 +380,7 @@ df_dedup.write.saveAsTable("hive_table")
 
 ---
 
-# 🔥 Common & Important Spark Interview Questions (with Examples)
+# 🔥 Common & Important Spark Internals (with Examples)
 
 ## 1. Have you written RDD transformations?
 
