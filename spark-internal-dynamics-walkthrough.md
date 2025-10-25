@@ -83,13 +83,13 @@
 ⚡ Spark Cluster Mode — Detailed Flow
 
 ```pgsql
-🧑‍💻 Client (spark-submit)
+🧑‍💻 1.️Client (spark-submit)
    └─> 📦 Application Master (YARN) / Cluster Manager
           • Client uploads app jars & staging (HDFS) then can safely disconnect
           • RM/AM take over lifecycle of the Driver
           |
           v
-🚗 Driver (runs inside cluster)
+🚗🧑‍💻 2. Driver (runs inside cluster)
    • Driver is launched inside AM container in cluster
    • Builds DAG, schedules tasks, tracks job state (inside cluster)
           |
@@ -98,7 +98,7 @@
           • Plan execution (stages, tasks, partitions)
           |
           v
-🤝 Driver contacts Resource Manager (YARN / K8s / Mesos)
+🤝🧑‍💻 3. Driver contacts Resource Manager (YARN / K8s / Mesos)
           • Driver requests executor containers/resources via RM
           |
           v
@@ -414,6 +414,9 @@ print(flatmapped.collect())
 ### Example: simple cron job
 
 ```bash
+crontab -l
+crontab -e
+
 0 2 * * * spark-submit \
   --master yarn \
   --deploy-mode cluster \
