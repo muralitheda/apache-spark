@@ -83,6 +83,7 @@
 ⚡ Spark Cluster Mode — Detailed Flow
 
 ```pgsql
+
 🧑‍💻6. Client (spark-submit)
    └─> 📦 Application Master (YARN) / Cluster Manager
           • Client uploads app jars & staging (HDFS) then can safely disconnect
