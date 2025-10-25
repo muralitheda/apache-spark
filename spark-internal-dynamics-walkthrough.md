@@ -84,7 +84,7 @@
 
 ```pgsql
 🧑‍💻 1. Client (spark-submit)
-   └─> 📦 Application Master (YARN) / Cluster Manager
+    └─> 📦 Application Master (YARN) / Cluster Manager
           • Client uploads app jars & staging (HDFS) then can safely disconnect
           • RM/AM take over lifecycle of the Driver
           |
@@ -103,16 +103,16 @@
           |
           v
 🖥️ 4. Node Managers (across cluster)
-   └─> 📦 Executors launched
+    └─> 📦 Executors launched
           • Executors are long-lived JVMs on worker nodes
           • Launched with required jars/configs from staging
           |
           v
-📂 5. Executors register with Driver (inside cluster)
+🖥️ 5. Executors register with Driver (inside cluster)
           • Fast local network registration (no external client hop)
           |
           v
- 6. Driver schedules tasks → Executors run them
+ 🚗6. Driver schedules tasks → Executors run them
           • Driver assigns tasks based on locality & resources
           • Tasks execute in parallel on executors
           |
@@ -126,9 +126,9 @@
           |
           v
 ✅ 9. Job Completion
-   └─> Executors shut down
-   └─> Driver exits (in cluster)
-   └─> AM deregisters from RM; resources released
+    └─> Executors shut down
+    └─> Driver exits (in cluster)
+    └─> AM deregisters from RM; resources released
 
 ```
 ---
