@@ -83,13 +83,13 @@
 ⚡ Spark Cluster Mode — Detailed Flow
 
 ```pgsql
-🧑‍💻 Client (spark-submit)
+🧑‍💻 1. Client (spark-submit)
    └─> 📦 Application Master (YARN) / Cluster Manager
           • Client uploads app jars & staging (HDFS) then can safely disconnect
           • RM/AM take over lifecycle of the Driver
           |
           v
-🚗 Driver (runs inside cluster)
+🚗 2. Driver (runs inside cluster)
    • Driver is launched inside AM container in cluster
    • Builds DAG, schedules tasks, tracks job state (inside cluster)
           |
@@ -98,34 +98,34 @@
           • Plan execution (stages, tasks, partitions)
           |
           v
-🤝 Driver contacts Resource Manager (YARN / K8s / Mesos)
+🤝 3. Driver contacts Resource Manager (YARN / K8s / Mesos)
           • Driver requests executor containers/resources via RM
           |
           v
-🖥️ Node Managers (across cluster)
+🖥️ 4. Node Managers (across cluster)
    └─> 📦 Executors launched
           • Executors are long-lived JVMs on worker nodes
           • Launched with required jars/configs from staging
           |
           v
-📂 Executors register with Driver (inside cluster)
+📂 5. Executors register with Driver (inside cluster)
           • Fast local network registration (no external client hop)
           |
           v
-⚡ Driver schedules tasks → Executors run them
+ 6. Driver schedules tasks → Executors run them
           • Driver assigns tasks based on locality & resources
           • Tasks execute in parallel on executors
           |
           v
-🗄️ Executors process data (HDFS / external sources)
+🗄️ 7. Executors process data (HDFS / external sources)
           • Read HDFS/DBs/S3, cache partitions in memory/disk, do shuffle
           |
           v
-📡 Executors send status & results → Driver (in cluster)
+📡 8. Executors send status & results → Driver (in cluster)
           • Progress, metrics, task failures reported to Driver/AM/RM
           |
           v
-✅ Job Completion
+✅ 9. Job Completion
    └─> Executors shut down
    └─> Driver exits (in cluster)
    └─> AM deregisters from RM; resources released
