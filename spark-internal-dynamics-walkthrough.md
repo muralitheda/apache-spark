@@ -477,6 +477,8 @@ spark = SparkSession.builder \
 
 sc = spark.sparkContext
 print(sc)   # SparkContext info
+
+spark.stop()
 ```
 
 ---
