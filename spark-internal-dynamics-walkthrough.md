@@ -785,7 +785,6 @@ This approach ensures you can **monitor, troubleshoot, and optimize jobs effecti
 | Performance / Skew Issues        | Skewed data causing straggler tasks and slow stages               | Uneven partition sizes leading to some executors taking longer            | Use `repartition()`, `salting`, or broadcast small tables                               |
 | Job Failures / Task Retry Errors | Failures in stages due to network, node failure, or retry limits  | Spark retries a stage multiple times before failing                       | Check Spark/YARN logs, handle errors in code, adjust retry configs                      |
 
-If you want, I can **also combine this with the previous Spark/YARN performance optimization table** so you have **one consolidated interview-ready table** with errors, causes, examples, and fixes. Do you want me to do that?
 
 ---
 ## 12. Schema & Cast Examples
