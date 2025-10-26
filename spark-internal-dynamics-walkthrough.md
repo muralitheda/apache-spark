@@ -773,7 +773,6 @@ This approach ensures you can **monitor, troubleshoot, and optimize jobs effecti
 
 ## What errors have you faced while debugging your spark code?
 
-Here’s the **updated Spark debugging errors table** with an additional column for resolutions:
 
 | **Error Type**                   | **Description / Cause**                                           | **Example / Notes**                                                       | **Resolution / Fix**                                                                    |
 | -------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
