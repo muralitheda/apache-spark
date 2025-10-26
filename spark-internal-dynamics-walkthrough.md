@@ -796,9 +796,47 @@ You can tune it using:
 ```python
 spark.conf.set("spark.sql.shuffle.partitions", <new_value>)
 ```
-
 to optimize performance based on data volume and cluster resources.
 
+---
+## What are the performance challenges you faced in Spark? Have you done any performance tuning by debugging in Spark UI?
+
+| **Category / Challenge**                           | **Symptoms Observed (Spark UI / Cluster)**                               | **Root Cause Analysis**                                                       | **Tuning / Resolution Applied (Key Techniques)**                                                                                                      |
+| -------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Skewed Data (Uneven Partition Distribution)** | Some tasks took significantly longer; high shuffle read on few executors | Data skew on join/group keys — few keys have majority of data                 | Applied **salting** on skewed keys; enabled **AQE skew join** (`spark.sql.adaptive.skewJoin.enabled=true`); used **broadcast joins** for small tables |
+| **2. Too Many Small Tasks / Partitions**           | 1000+ very small tasks completing too fast (<100 ms)                     | Over-partitioned data; default `spark.sql.shuffle.partitions=200` not optimal | Enabled **AQE** (`spark.sql.adaptive.enabled=true`) to auto-adjust partitions; manually tuned shuffle partitions based on input size                  |
+| **3. Memory / OOM Errors (Executor Lost)**         | Job failed with `OutOfMemoryError`; executor lost                        | Executor memory too low or too many concurrent tasks                          | Increased `spark.executor.memory`, adjusted `spark.memory.fraction`; reduced executor cores for better GC efficiency                                  |
+| **4. Excessive Shuffling**                         | High shuffle read/write time in Spark UI                                 | Too many wide transformations (joins, groupBy) causing shuffle                | Combined transformations; reused cached DataFrames; tuned `spark.sql.shuffle.partitions`; avoided unnecessary shuffles                                |
+| **5. Inefficient Join Strategy**                   | Large shuffle during joins despite one small table                       | Spark didn’t use broadcast join automatically                                 | Used **broadcast(df_small)**; tuned `spark.sql.autoBroadcastJoinThreshold`; re-ordered join inputs                                                    |
+| **6. Uncached Reused DataFrames**                  | Same DataFrame recomputed for multiple actions                           | Lazy evaluation leads to recomputation                                        | Used `.cache()` or `.persist(StorageLevel.MEMORY_AND_DISK)` to reuse results                                                                          |
+| **7. Inefficient Python UDFs**                     | High CPU time, slow task execution                                       | Python UDF serialization overhead                                             | Replaced with **Spark SQL built-in** or **Pandas UDFs** for vectorized execution                                                                      |
+| **8. Unbalanced Executor Utilization**             | Some executors idle while others overloaded                              | Poor partitioning or data locality imbalance                                  | Used `.repartition()` / `.coalesce()` for better load balance; validated partition distribution                                                       |
+| **9. Long Shuffle Read Waits**                     | Stage time dominated by “fetch wait time”                                | Large shuffle blocks and high network I/O                                     | Tuned shuffle parameters (`spark.shuffle.io.maxRetries`, compression); minimized shuffle data size                                                    |
+| **10. Small Files Problem**                        | Thousands of tiny input files; slow job startup                          | Input data fragmentation                                                      | Compacted files upstream (merge job) or after read using `.coalesce()` / `.repartition()`                                                             |
+| **11. Suboptimal Executor Configuration**          | High GC time, underutilized cores                                        | Misconfigured executor cores/memory                                           | Tuned `--num-executors`, `--executor-memory`, `--executor-cores` for optimal resource usage                                                           |
+| **12. Lack of Adaptive Query Execution (AQE)**     | Static shuffle partitions leading to inefficient parallelism             | AQE disabled in config                                                        | Enabled `spark.sql.adaptive.enabled=true` to let Spark dynamically tune partitions and join strategies                                                |
+| **13. Poor File Format Choice**                    | Slow read/write, large disk usage                                        | Text/CSV instead of columnar format                                           | Migrated to **Parquet/ORC**, enabled compression (`snappy`), and optimized schema projection                                                          |
+| **14. Data Skew in Joins (Advanced)**              | Stage running 10× slower due to skewed key                               | Heavy concentration of one key in join                                        | Added **random salt key**, used **salting + union** technique to rebalance data                                                                       |
+| **15. Lack of Caching Between Expensive Stages**   | Repeated recomputation of intermediate results                           | No caching used across multiple actions                                       | Persisted reused data at strategic checkpoints using `.cache()` or `.persist()`                                                                       |
+| **16. Non-vectorized Reads/Writes**                | Slow Parquet read/write throughput                                       | Vectorization disabled                                                        | Enabled vectorized reader: `spark.sql.parquet.enableVectorizedReader=true`                                                                            |
+
+
+### ✅ **How Spark UI Helped**
+
+| **Spark UI Section** | **Insights Used for Debugging**                                          |
+| -------------------- | ------------------------------------------------------------------------ |
+| **Stages Tab**       | Identified shuffle-heavy stages, straggler tasks, and skewed partitions  |
+| **SQL Tab**          | Verified physical plan — join types (BroadcastHashJoin vs SortMergeJoin) |
+| **Executors Tab**    | Checked memory usage, GC overhead, task failures                         |
+| **Environment Tab**  | Reviewed applied Spark configurations                                    |
+| **Storage Tab**      | Validated whether cached/persisted DataFrames are in memory              |
+
+### **Key Takeaways / Outcomes**
+
+* **30–40% reduction** in overall job execution time
+* **50% decrease** in shuffle data after enabling AQE and broadcast joins
+* Improved **executor utilization** and reduced OOM failures
+* Enhanced **cluster cost efficiency and throughput**
 
 ---
 ## 12. Schema & Cast Examples
