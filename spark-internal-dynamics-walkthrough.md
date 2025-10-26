@@ -619,7 +619,7 @@ if __name__ =="__main__":
 
 ```python
 df = spark.range(1, 100)
-print(df.rdd.getNumPartitions()) # default
+print(df.rdd.getNumPartitions()) # default: 5
 
 df = df.repartition(10) # increase partitions (full shuffle across the cluster)
 print(df.rdd.getNumPartitions())  # 10
@@ -628,7 +628,7 @@ df = df.repartition(5) # reduce partitions (full shuffle across the cluster)
 print(df.rdd.getNumPartitions())  # 5
 
 df = df.coalesce(2) # reduce partitions (no shuffle. only merge the partitions locally)
-print(df.rdd.getNumPartitions())  # 5
+print(df.rdd.getNumPartitions())  # 2
 
 df.cache()
 print(df.rdd.getStorageLevel()) # Serialized 1x Replicated
