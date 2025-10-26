@@ -839,6 +839,55 @@ to optimize performance based on data volume and cluster resources.
 * Enhanced **cluster cost efficiency and throughput**
 
 ---
+
+## How do you get the size of a DataFrame or RDD in memory (in bytes) in Spark?
+
+Here’s a clean and complete explanation — including **code, concept, and interpretation** — all in one place 👇
+
+---
+
+## How do you get the size of a DataFrame or RDD in memory (in bytes) in Spark?
+
+### **Explanation:**
+
+There is **no direct API** in PySpark to get the in-memory size of a DataFrame.
+However, there are **two main approaches**:
+
+| **Method**                                                            | **Approach**            | **Description**                                                                                     | **Example / Notes**                                                             |
+| --------------------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **1. Convert DF → RDD → Java RDD → use `SizeEstimator` (Scala/Java)** | JVM-based estimation    | Uses Spark’s internal `SizeEstimator.estimate()` method to get approximate size of RDD/DF in memory | More accurate, but needs Scala/Java interop — not available directly in PySpark |
+| **2. Estimate via Python using `sys.getsizeof()`**                    | Python-based estimation | Collects size of partitions in bytes and sums them up                                               | Simpler and works directly in PySpark; gives approximate result                 |
+
+### **Example: Estimate Size of DataFrame in Bytes (PySpark)**
+
+```python
+from pyspark.sql import SparkSession
+from sys import getsizeof
+
+def main():
+    # Sample DataFrame
+    df = spark.read.csv(path="hdfs:///home/hduser/custs",header=False,inferSchema=True).toDF("custno","firstname","lastname","age","profession")
+
+    # Convert to RDD and estimate partition wise size
+    rdd_sizes = df.rdd.glom().map(lambda part: getsizeof(part)).collect()
+
+    # Total estimated size
+    total_size_bytes = sum(rdd_sizes)
+    print(f"Estimated total size:{total_size_bytes} bytes")
+
+if __name__ == "__main__":
+    spark = SparkSession.builder.appName("demojob").enableHiveSupport().getOrCreate()
+    main()
+```
+
+### **Notes / Key Points**
+
+* This gives an **approximate size**, not an exact value.
+* Spark data is **distributed** across executors; each partition’s memory usage may vary.
+* For practical monitoring, you can also check the **Spark UI → Storage Tab**, which shows cached DataFrames and their memory footprint.
+* Estimating memory size helps in tuning **`executor-memory`** and **cache persistence levels**.
+
+---
 ## 12. Schema & Cast Examples
 
 ```python
