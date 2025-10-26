@@ -425,10 +425,7 @@ if __name__ =="__main__":
 crontab -l
 crontab -e
 
-0 2 * * * spark-submit \
-  --master yarn \
-  --deploy-mode cluster \
-  daily_job.py
+0 2 * * * spark-submit --master yarn --deploy-mode client ~/demojob.py
 ```
 
 ---
