@@ -529,7 +529,7 @@ df.createOrReplaceTempView("view1")
 
 spark.sql("select * from view1 where id=1").explain(extended=True)
 
-/*
+"""
 == Parsed Logical Plan ==
 'Project [*]
 +- 'Filter ('id = 1)
@@ -550,7 +550,7 @@ Filter (isnotnull(id#0L) AND (id#0L = 1))
 == Physical Plan ==
 *(1) Filter (isnotnull(id#0L) AND (id#0L = 1))
 +- *(1) Scan ExistingRDD[id#0L,name#1]
-*/
+"""
 ```
 
 ---
