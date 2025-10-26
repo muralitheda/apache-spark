@@ -771,6 +771,29 @@ This approach ensures you can **monitor, troubleshoot, and optimize jobs effecti
 
 
 ---
+
+## What errors have you faced while debugging your spark code?
+
+```markdown
+| **Error Type**                  | **Description / Cause**                                                                 | **Example / Notes**                                                                 |
+|---------------------------------|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| Data Issues                      | Inconsistent, missing, or corrupt data causing runtime errors                           | Null values in non-nullable columns, missing partitions                             |
+| Format / Type Issues             | Schema mismatch or wrong data type for transformations                                   | Trying to cast a string column to integer without proper validation                 |
+| Memory Issues                    | Out of Memory (OOM) or executor memory errors                                           | `java.lang.OutOfMemoryError: Java heap space`                                       |
+| Data Availability Issues         | Missing files or inaccessible data sources                                             | `java.io.FileNotFoundException` when reading from HDFS or GCS                        |
+| Class Not Found                  | Spark cannot find required classes for UDFs or external libraries                       | `java.lang.ClassNotFoundException: org.apache.spark.sql.hive.HiveContext`           |
+| Dependency / JAR Issues          | Conflicts between Spark and external libraries                                         | Version mismatch causing runtime errors                                             |
+| Performance / Skew Issues        | Skewed data causing straggler tasks and slow stages                                     | Uneven partition sizes leading to some executors taking longer                       |
+| Job Failures / Task Retry Errors | Failures in stages due to network, node failure, or retry limits                        | Spark retries a stage multiple times before failing                                 |
+```
+
+**Notes for Interviews:**
+
+* Always mention **how you debugged**: logs, Spark UI, YARN RM/AM logs, or stack traces.
+* Highlight examples of **real errors you fixed** from projects or tickets (e.g., Jira, StackOverflow).
+* Show awareness of **data, memory, schema, and dependency challenges** — interviewers often probe for this.
+
+---
 ## 12. Schema & Cast Examples
 
 ```python
