@@ -769,29 +769,24 @@ or via Spark History UI.
 
 This approach ensures you can **monitor, troubleshoot, and optimize jobs effectively** across Hadoop/YARN and Spark clusters.
 
-
 ---
 
 ## What errors have you faced while debugging your spark code?
 
-```markdown
-| **Error Type**                  | **Description / Cause**                                                                 | **Example / Notes**                                                                 |
-|---------------------------------|-----------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| Data Issues                      | Inconsistent, missing, or corrupt data causing runtime errors                           | Null values in non-nullable columns, missing partitions                             |
-| Format / Type Issues             | Schema mismatch or wrong data type for transformations                                   | Trying to cast a string column to integer without proper validation                 |
-| Memory Issues                    | Out of Memory (OOM) or executor memory errors                                           | `java.lang.OutOfMemoryError: Java heap space`                                       |
-| Data Availability Issues         | Missing files or inaccessible data sources                                             | `java.io.FileNotFoundException` when reading from HDFS or GCS                        |
-| Class Not Found                  | Spark cannot find required classes for UDFs or external libraries                       | `java.lang.ClassNotFoundException: org.apache.spark.sql.hive.HiveContext`           |
-| Dependency / JAR Issues          | Conflicts between Spark and external libraries                                         | Version mismatch causing runtime errors                                             |
-| Performance / Skew Issues        | Skewed data causing straggler tasks and slow stages                                     | Uneven partition sizes leading to some executors taking longer                       |
-| Job Failures / Task Retry Errors | Failures in stages due to network, node failure, or retry limits                        | Spark retries a stage multiple times before failing                                 |
-```
+Here’s the **updated Spark debugging errors table** with an additional column for resolutions:
 
-**Notes for Interviews:**
+| **Error Type**                   | **Description / Cause**                                           | **Example / Notes**                                                       | **Resolution / Fix**                                                                    |
+| -------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Data Issues                      | Inconsistent, missing, or corrupt data causing runtime errors     | Null values in non-nullable columns, missing partitions                   | Validate and clean data before processing, use `na.fill()`, `drop()`, or default values |
+| Format / Type Issues             | Schema mismatch or wrong data type for transformations            | Trying to cast a string column to integer without proper validation       | Cast columns explicitly, use `withColumn()` with proper type conversion                 |
+| Memory Issues                    | Out of Memory (OOM) or executor memory errors                     | `java.lang.OutOfMemoryError: Java heap space`                             | Increase executor memory, reduce shuffle partitions, persist/cache intermediate data    |
+| Data Availability Issues         | Missing files or inaccessible data sources                        | `java.io.FileNotFoundException` when reading from HDFS or GCS             | Verify file paths, check HDFS/GCS permissions, ensure data exists                       |
+| Class Not Found                  | Spark cannot find required classes for UDFs or external libraries | `java.lang.ClassNotFoundException: org.apache.spark.sql.hive.HiveContext` | Add required JARs to classpath, check Spark submit `--jars` or `--packages`             |
+| Dependency / JAR Issues          | Conflicts between Spark and external libraries                    | Version mismatch causing runtime errors                                   | Resolve version conflicts, shade dependencies, use compatible library versions          |
+| Performance / Skew Issues        | Skewed data causing straggler tasks and slow stages               | Uneven partition sizes leading to some executors taking longer            | Use `repartition()`, `salting`, or broadcast small tables                               |
+| Job Failures / Task Retry Errors | Failures in stages due to network, node failure, or retry limits  | Spark retries a stage multiple times before failing                       | Check Spark/YARN logs, handle errors in code, adjust retry configs                      |
 
-* Always mention **how you debugged**: logs, Spark UI, YARN RM/AM logs, or stack traces.
-* Highlight examples of **real errors you fixed** from projects or tickets (e.g., Jira, StackOverflow).
-* Show awareness of **data, memory, schema, and dependency challenges** — interviewers often probe for this.
+If you want, I can **also combine this with the previous Spark/YARN performance optimization table** so you have **one consolidated interview-ready table** with errors, causes, examples, and fixes. Do you want me to do that?
 
 ---
 ## 12. Schema & Cast Examples
