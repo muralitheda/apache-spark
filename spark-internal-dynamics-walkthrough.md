@@ -278,8 +278,6 @@ df_dedup.write.saveAsTable("hive_table")
 * Result: **optimized logical plan**
 * DAG is **updated with optimized operations**, ready for physical planning ✅
 
-
-
 #### 5. **Physical Plan Generation** 🏗️
 
 * Catalyst converts optimized logical plan into **physical plan(s)**:
@@ -298,8 +296,6 @@ df_dedup.write.saveAsTable("hive_table")
   * Stage 1: Read CSV
   * Stage 2: Shuffle & Deduplicate
   * Stage 3: Write to Hive
-
-
 
 #### 6. **Tungsten Execution** ⚡
 
@@ -331,8 +327,6 @@ df_dedup.write.saveAsTable("hive_table")
   * Tungsten optimizes in-memory aggregation & minimizes serialization
 * DAG visualizes **shuffle edges** between stages, representing data movement
 
-
-
 #### 9. **Writing to Hive Table** 🏛️
 
 * Stage 3 of DAG executes:
@@ -341,7 +335,6 @@ df_dedup.write.saveAsTable("hive_table")
   * Hive Metastore updated by Driver/Hive connector
   * Tungsten optimizes serialization and write buffers
 * DAG edges from Stage 2 → Stage 3 ensure **task dependencies** are respected
-
 
 #### 10. **Execution Tracking** 📊
 
@@ -377,6 +370,8 @@ df_dedup.write.saveAsTable("hive_table")
 | 🚗 **Driver**                 | Builds plans, schedules tasks, coordinates execution, talks to Hive Metastore            |
 | 📦 **Executors**              | Read HDFS blocks, run transformations, shuffle for dedup, write results, report status   |
 | 🗂️ **Resource Manager / AM** | Allocates containers, manages Driver lifecycle                                           |
+
+![img.png](images/img2.png)
 
 ---
 
