@@ -458,7 +458,7 @@ with DAG("spark_job_dag", start_date=datetime(2024,1,1), schedule="@daily") as d
 ```bash
 spark-submit \
   --conf spark.yarn.maxAppAttempts=2 \
-  job.py
+  demojob.py
 ```
 
 👉 In **Airflow**, use `retries=2`.
