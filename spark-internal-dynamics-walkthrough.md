@@ -633,6 +633,60 @@ print(df.rdd.getNumPartitions())  # 2
 df.cache()
 print(df.rdd.getStorageLevel()) # Serialized 1x Replicated
 ```
+---
+
+## What are all the activities we can’t do in a DF?
+
+| **S.No** | **Activity**                                                       | **Reason / Explanation**                                                                                                                                                                                                          |
+| -------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1**    | **Cannot modify a DataFrame directly**                             | DataFrames in Spark are **immutable**. Once created, they can’t be updated or modified in place. To change data, you must create a **new DataFrame** with transformations. (Delta Lake enables updates and deletes later.)        |
+| **2**    | **Cannot find the number of partitions directly from a DataFrame** | The DataFrame API does not provide a direct method like `df.numPartitions`. To get partition info, you must use the **RDD API** — e.g., `df.rdd.getNumPartitions()`.                                                              |
+| **3**    | **Cannot broadcast a DataFrame directly**                          | Spark’s **broadcast function** works on variables, not on DataFrames. To broadcast, you must convert the DataFrame to an **RDD or use broadcast joins** via Spark SQL or the `broadcast()` function from `pyspark.sql.functions`. |
+
+Here’s a simple example of broadcasting in PySpark 👇
+
+### ❌ Not allowed (Direct broadcast on DataFrame)
+
+```python
+# This will NOT work
+df_broadcast = sc.broadcast(df)   # ❌ Error: Can't broadcast DataFrame
+```
+
+### ✅ Correct way (Using broadcast join)
+
+```python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import broadcast
+spark = SparkSession.builder.appName("demojob").enableHiveSupport().getOrCreate()
+
+def main():
+    # Sample DataFrames
+    df_large = spark.createDataFrame(data=[(1,"A"),(2,"B"),(3,"C")], schema=["id","value"])
+    df_small = spark.createDataFrame(data=[(1, "X"), (2, "Y")], schema=["id", "desc"])
+
+    # Use Broadcast Join
+    df_result = df_large.join(broadcast(df_small),"id")
+    df_result.show()
+
+if __name__ =="__main__":
+    main()
+    spark.stop()
+    
+"""
++---+-----+----+
+| id|value|desc|
++---+-----+----+
+|  1|    A|   X|
+|  2|    B|   Y|
++---+-----+----+
+"""
+```
+
+**Explanation:**
+
+* The small DataFrame (`df_small`) is **broadcasted** to all worker nodes.
+* This avoids shuffling large data during joins, improving performance.
+
 
 ---
 
