@@ -523,11 +523,34 @@ SQL/DSL → Logical Plan → Optimized Logical Plan → Physical Plan → RDD DA
 ### Example: SQL → Plan
 
 ```python
-df = spark.createDataFrame(data[(1, "A"), (2, "B")], ["id", "name"])
-df.createOrReplaceTempView("demo")
+# SQL/DSL -> Logical Plan -> Optimized Logical Plan -> Physical Plan -> RDD DAG -> Stages -> Tasks -> Executors
+df = spark.createDataFrame(data=[(1,"A"),(2,"B"),(3,"C")], schema=["id","name"])
+df.createOrReplaceTempView("view1")
 
-plan = spark.sql("SELECT * FROM demo WHERE id = 1").explain(True)
-print(plan)
+spark.sql("select * from view1 where id=1").explain(extended=True)
+
+/*
+== Parsed Logical Plan ==
+'Project [*]
++- 'Filter ('id = 1)
+   +- 'UnresolvedRelation [view1], [], false
+
+== Analyzed Logical Plan ==
+id: bigint, name: string
+Project [id#0L, name#1]
++- Filter (id#0L = cast(1 as bigint))
+   +- SubqueryAlias view1
+      +- View (`view1`, [id#0L,name#1])
+         +- LogicalRDD [id#0L, name#1], false
+
+== Optimized Logical Plan ==
+Filter (isnotnull(id#0L) AND (id#0L = 1))
++- LogicalRDD [id#0L, name#1], false
+
+== Physical Plan ==
+*(1) Filter (isnotnull(id#0L) AND (id#0L = 1))
++- *(1) Scan ExistingRDD[id#0L,name#1]
+*/
 ```
 
 ---
