@@ -785,6 +785,20 @@ This approach ensures you can **monitor, troubleshoot, and optimize jobs effecti
 | Performance / Skew Issues        | Skewed data causing straggler tasks and slow stages               | Uneven partition sizes leading to some executors taking longer            | Use `repartition()`, `salting`, or broadcast small tables                               |
 | Job Failures / Task Retry Errors | Failures in stages due to network, node failure, or retry limits  | Spark retries a stage multiple times before failing                       | Check Spark/YARN logs, handle errors in code, adjust retry configs                      |
 
+---
+
+## After performing a **join**, **groupBy**, or **aggregation** operation in Spark, does the **number of partitions** in the resulting DataFrame change? If yes, what determines the new number of partitions and how can it be tuned for better performance?
+
+**Expected Answer (Short):**
+Yes — after wide transformations like join, groupBy, or aggregation, Spark triggers a **shuffle**, and the number of output partitions is reset based on the **`spark.sql.shuffle.partitions`** setting (default = **200**).
+You can tune it using:
+
+```python
+spark.conf.set("spark.sql.shuffle.partitions", <new_value>)
+```
+
+to optimize performance based on data volume and cluster resources.
+
 
 ---
 ## 12. Schema & Cast Examples
