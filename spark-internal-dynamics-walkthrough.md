@@ -696,6 +696,7 @@ if __name__ =="__main__":
 yarn application -list | grep "RUNNING"
 
 #OR
+
 yarn application -list | grep "RUNNING" | awk '{print $1}' > job_list.txt
 ```
 
