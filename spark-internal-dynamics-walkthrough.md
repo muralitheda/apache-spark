@@ -552,6 +552,19 @@ Filter (isnotnull(id#0L) AND (id#0L = 1))
 
 ## 9. PySpark DSL vs SQL
 
+| **Aspect**      | **PySpark DSL**                                           | **PySpark SQL**                                                       |
+| --------------- | --------------------------------------------------------- | --------------------------------------------------------------------- |
+| **Style**       | Functional programming with method chaining on DataFrames | Declarative SQL-like syntax                                           |
+| **Ease of Use** | Steeper learning curve, suits programmers                 | Easier for SQL users, readable                                        |
+| **Use Case**    | Complex, reusable, programmatic transformations           | Simple, ad-hoc analytical queries                                     |
+| **Integration** | Works well with Python logic and functions                | Keeps SQL logic separate from Python code                             |
+| **Performance** | Optimized by Catalyst and Tungsten (same as SQL)          | Optimized by Catalyst and Tungsten (same as DSL)                      |
+| **Flexibility** | High – allows chaining, reusable DataFrames               | Moderate – limited to SQL expressions                                 |
+| **Portability** | Spark-specific, not platform independent                  | Platform independent (works across BigQuery, Synapse, Redshift, etc.) |
+| **Best For**    | ETL pipelines, data transformations, reusable logic       | Reporting, analytics, one-time queries                                |
+| **Conclusion**  | Flexible and suited for complex transformations           | Easier, ideal for ad-hoc queries and cross-platform use               |
+
+
 ### Example
 
 ```python
