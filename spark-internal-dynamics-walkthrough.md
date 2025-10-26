@@ -603,15 +603,35 @@ if __name__ =="__main__":
 
 ## 10. Repartition, Coalesce, Cache
 
+| **Aspect**                      | **Repartition**                                                                   | **Coalesce**                                                         | **Cache / Persist**                                                       |
+| ------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **Purpose**                     | Increases or decreases the number of partitions for parallelism                   | Reduces the number of partitions without a full shuffle              | Stores DataFrame in memory (or memory + disk) for faster access           |
+| **Shuffle**                     | **Yes** – performs a **full shuffle** across the cluster                          | **No (or minimal)** – tries to merge partitions locally              | **No shuffle** – just caches data in memory                               |
+| **When to Use**                 | When you need **more partitions** for parallel processing or balanced workload    | When you need **fewer partitions** to optimize small output datasets | When the same DataFrame is used **multiple times** in a job               |
+| **Performance Cost**            | **High** – due to full data shuffle                                               | **Low** – merges existing partitions                                 | **Low/Medium** – depends on memory availability                           |
+| **Example**                     | `df.repartition(8)`                                                               | `df.coalesce(2)`                                                     | `df.cache()` or `df.persist(StorageLevel.MEMORY_AND_DISK)`                |
+| **Typical Use Case**            | Before wide transformations (e.g., joins, aggregations) to distribute data evenly | After filtering or reducing data volume to minimize partitions       | Before reusing a DataFrame in multiple actions (e.g., count, show, write) |
+| **Effect on Data Distribution** | Redistributes data evenly across partitions                                       | Does not guarantee even distribution                                 | No effect on partitioning or data distribution                            |
+| **Action Triggered?**           | No – lazy operation                                                               | No – lazy operation                                                  | No – lazy operation (materialized on first action)                        |
+| **Persistence Type**            | Restructures data                                                                 | Merges partitions                                                    | Keeps data in memory/disk for reuse                                       |
+| **Conclusion**                  | Use for **balancing and scaling up**                                              | Use for **scaling down efficiently**                                 | Use for **reusing results quickly**                                       |
+
+
 ```python
 df = spark.range(1, 100)
+print(df.rdd.getNumPartitions()) # default
 
-print(df.rdd.getNumPartitions())   # default
-df2 = df.repartition(10)           # increase partitions
-df3 = df2.coalesce(2)              # reduce partitions
+df = df.repartition(10) # increase partitions (full shuffle across the cluster)
+print(df.rdd.getNumPartitions())  # 10
 
-df3.cache()
-print(df3.rdd.getStorageLevel())   # check cache level
+df = df.repartition(5) # reduce partitions (full shuffle across the cluster)
+print(df.rdd.getNumPartitions())  # 5
+
+df = df.coalesce(2) # reduce partitions (no shuffle. only merge the partitions locally)
+print(df.rdd.getNumPartitions())  # 5
+
+df.cache()
+print(df.rdd.getStorageLevel()) # Serialized 1x Replicated
 ```
 
 ---
