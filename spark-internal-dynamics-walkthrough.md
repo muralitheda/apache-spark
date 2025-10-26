@@ -388,7 +388,7 @@ Yes. RDDs support **transformations** (lazy ops) and **actions** (trigger execut
 
 ### Example: `map` vs `flatMap`
 
-```pyspark
+```python
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.appName("Demojob").enableHiveSupport().getOrCreate()
 
