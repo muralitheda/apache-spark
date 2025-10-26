@@ -371,7 +371,7 @@ df_dedup.write.saveAsTable("hive_table")
 | 📦 **Executors**              | Read HDFS blocks, run transformations, shuffle for dedup, write results, report status   |
 | 🗂️ **Resource Manager / AM** | Allocates containers, manages Driver lifecycle                                           |
 
-![img.png](images/img2.png)
+![img.png](images/img3.png)
 
 ---
 
