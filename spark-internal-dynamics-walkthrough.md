@@ -568,15 +568,37 @@ Filter (isnotnull(id#0L) AND (id#0L = 1))
 ### Example
 
 ```python
-# DSL
-df = spark.read.csv("data.csv", header=True, inferSchema=True)
-df.filter(df.age > 30).select("name").show()
+"""
+demojob.py
 
-# SQL
-df.createOrReplaceTempView("people")
-spark.sql("SELECT name FROM people WHERE age > 30").show()
+custs
+4000001,Kristina,Chung,55,Pilot
+4000002,Paige,Chen,77,Teacher
+4000003,Sherri,Melton,34,Firefighter
+"""
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType,StructField,StringType,IntegerType
+spark = SparkSession.builder.appName("demojob").enableHiveSupport().getOrCreate()
+
+def main():
+    custs_schema = StructType([
+        StructField("custid",IntegerType(),True),
+        StructField("fname",StringType(),True),
+        StructField("lname",StringType(),True),
+        StructField("age",IntegerType(),True),
+        StructField("prof",StringType(),True)])
+    #DSL
+    df = spark.read.csv(path="hdfs:///home/hduser/custs",header=False,schema=custs_schema)
+    df.filter(df.age > 40).select(df.custid,df.fname,df.lname,df.age,df.prof).orderBy(df.fname).show(5,truncate=False)
+
+    #SQL
+    df.createOrReplaceTempView("customers")
+    spark.sql("select custid, fname, lname,age,prof from customers order by fname").show(5, truncate=False)
+
+if __name__ =="__main__":
+    main()
+    spark.stop()
 ```
-
 ---
 
 ## 10. Repartition, Coalesce, Cache
