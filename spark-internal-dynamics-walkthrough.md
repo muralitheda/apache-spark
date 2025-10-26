@@ -388,18 +388,26 @@ Yes. RDDs support **transformations** (lazy ops) and **actions** (trigger execut
 
 ### Example: `map` vs `flatMap`
 
-```python
-# map -> one input -> one output
-rdd = sc.parallelize(["apple", "banana", "orange"])
-mapped = rdd.map(lambda x: (x, len(x)))
-print(mapped.collect())  
-# [('apple', 5), ('banana', 6), ('orange', 6)]
+```pyspark
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName("Demojob").enableHiveSupport().getOrCreate()
 
-# flatMap -> one input -> multiple outputs
-rdd2 = sc.parallelize(["a b", "c d", "e f"])
-flatmapped = rdd2.flatMap(lambda x: x.split(" "))
-print(flatmapped.collect())  
-# ['a', 'b', 'c', 'd', 'e', 'f']
+def main():
+    # map -> one input -> one output
+    rdd = spark.sparkContext.parallelize(["apple","banana","orange"])
+    mapped = rdd.map(lambda x: (x, len(x)))
+    print("[INFO] mapped:", mapped.collect())
+    #[INFO] mapped: [('apple', 5), ('banana', 6), ('orange', 6)]
+
+    # flatmap -> one input -> multiple output
+    rdd2 = spark.sparkContext.parallelize(["1  2","3 4  5","6  7 8  9"])
+    flatmapped = rdd2.flatMap(lambda x: x.split(" "))
+    print("[INFO] flatmapped:",flatmapped.collect())
+    #[INFO] flatmapped: ['1', '', '2', '3', '4', '', '5', '6', '', '7', '8', '', '9']
+
+if __name__ =="__main__":
+    main()
+    spark.stop()
 ```
 
 👉 In real projects, developers prefer **DataFrames/SQL** because Catalyst Optimizer + Tungsten provide automatic optimizations.
@@ -518,7 +526,7 @@ SQL/DSL → Logical Plan → Optimized Logical Plan → Physical Plan → RDD DA
 ### Example: SQL → Plan
 
 ```python
-df = spark.createDataFrame([(1, "A"), (2, "B")], ["id", "name"])
+df = spark.createDataFrame(data[(1, "A"), (2, "B")], ["id", "name"])
 df.createOrReplaceTempView("demo")
 
 plan = spark.sql("SELECT * FROM demo WHERE id = 1").explain(True)
