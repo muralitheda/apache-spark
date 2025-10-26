@@ -704,6 +704,42 @@ or via Spark History UI.
 
 ---
 
+## What is the total number of jobs/applications runs in your cluster per day?
+
+| **Cluster Type**              | **Number of Nodes / Environment** | **Share of Jobs**       | **Job Frequency**              | **Notes**                                 | **Resource Utilization**                  | **Example Use Cases**                                          |
+| ----------------------------- | --------------------------------- | ----------------------- | ------------------------------ | ----------------------------------------- | ----------------------------------------- | -------------------------------------------------------------- |
+| **Long-running / On-prem**    | 120 nodes, Dataproc cluster       | 50% of total Spark jobs | Hourly, Daily, Weekly, Monthly | Supports continuous data processing 24/7  | 60–70% average, 30–40% buffer for spikes  | ETL pipelines, scheduled batch jobs, continuous streaming      |
+| **Ephemeral Clusters**        | Short-lived / on-demand           | 20% of total Spark jobs | Ad-hoc / on-demand             | Runs temporary workloads and experiments  | Scales based on demand                    | Ad-hoc analytics, testing new pipelines, temporary experiments |
+| **Serverless Spark Clusters** | Managed serverless environment    | 30% of total Spark jobs | Hourly / Daily / Weekly        | Auto-scales, no cluster management needed | Optimized for spikes and high concurrency | Event-driven processing, auto-scaling jobs, variable workloads |
+
+**Overall Cluster Activity:**
+
+* **Total jobs per day (all clusters):** 300–500+
+* **Jobs in your project:** ~80–120+ per day
+
+---
+
+## How many Jobs/Pipelines you developed?
+
+| **Category**                   | **Details**                                              |
+| ------------------------------ | -------------------------------------------------------- |
+| **Total Pipelines Developed**  | ~40–60 end-to-end data pipelines                         |
+| **Development vs Maintenance** | Developed: 20+ <br> Maintained: 20–40+                   |
+| **Pipeline Type**              | Batch: 80% <br> Streaming / Near Real-time: 20%          |
+| **Data Sources / Ingestion**   | On-prem databases, APIs, flat files, GCS, Pub/Sub, Kafka |
+| **Transformations**            | PySpark, Spark SQL, Dataflow                             |
+| **Data Quality**               | Validation and quality checks integrated                 |
+| **Data Storage / Publishing**  | BigQuery, Hive, downstream APIs                          |
+| **Orchestration**              | Airflow / Cloud Composer                                 |
+
+**Key Points:**
+
+* Developed **end-to-end pipelines** covering ingestion, transformation, validation, and publishing.
+* Hands-on experience with both **batch and streaming** workflows.
+* Integrated **workflow orchestration** and **data quality checks** into pipelines.
+
+---
+
 ## 12. Schema & Cast Examples
 
 ```python
