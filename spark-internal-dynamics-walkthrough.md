@@ -842,12 +842,6 @@ to optimize performance based on data volume and cluster resources.
 
 ## How do you get the size of a DataFrame or RDD in memory (in bytes) in Spark?
 
-Here’s a clean and complete explanation — including **code, concept, and interpretation** — all in one place 👇
-
----
-
-## How do you get the size of a DataFrame or RDD in memory (in bytes) in Spark?
-
 ### **Explanation:**
 
 There is **no direct API** in PySpark to get the in-memory size of a DataFrame.
@@ -891,33 +885,44 @@ if __name__ == "__main__":
 
 ## How do you submit a Spark job with optimized memory and CPU parameters using spark-submit?
 
-| **Category**                   | **Parameter / Step**                     | **Description / Purpose**    | **Values / Example**              | **Notes / Best Practices**                                       |
-| ------------------------------ | ---------------------------------------- | ---------------------------- |-----------------------------------| ---------------------------------------------------------------- |
-| **Spark Job Submission**       | `--master`                               | Cluster manager              | `yarn`                            | Can also use `local`, `k8s`, or `mesos`                          |
-|                                | `--deploy-mode`                          | Driver location              | `cluster`                         | Use `client` mode for debugging                                  |
-|                                | `--num-executors`                        | Total executors              | 360 (based on sizing calculation) | Adjust based on cluster capacity                                 |
-|                                | `--executor-cores`                       | CPU cores per executor       | 5                                 | Optimal 4–6 cores/executor                                       |
-|                                | `--executor-memory`                      | Memory per executor          | 8g                                | Leave 10% for OS/Spark overhead                                  |
-|                                | `--driver-memory`                        | Memory for driver            | 4g                                | Increase for large job plans                                     |
-|                                | `--queue`                                | YARN queue                   | `default`                         | Helps segregate resources by job priority                        |
-|                                | `--conf spark.sql.shuffle.partitions`    | Shuffle parallelism          | 400                               | Tune based on input size / stage skew                            |
-|                                | `--conf spark.dynamicAllocation.enabled` | Auto executor scaling        | `false`                           | Disable for stable batch jobs                                    |
-| **Cluster Sizing Calculation** | Nodes                                    | Total machines               | 120                               | Example Dataproc cluster                                         |
-|                                | Cores per Node                           | CPU per node                 | 16                                | Used to calculate executors/node                                 |
-|                                | Memory per Node                          | RAM per node                 | 64 GB                             | Leave buffer for OS/Hadoop daemons                               |
-|                                | Cores per Executor                       | Cores assigned per executor  | 5                                 | Typically 4–6 cores/executor                                     |
-|                                | Memory per Executor                      | Memory assigned per executor | 8 GB                              | Keep 10% overhead for OS/Spark                                   |
-|                                | Executors per Node                       | Calculated                   | 3                                 | `floor(16 cores / 5 cores per executor)`                         |
-|                                | Total Executors                          | Cluster-wide                 | 360                               | `120 nodes × 3 executors/node`                                   |
-|                                | Total Cores                              | Across all executors         | 1800                              | `360 × 5 cores`                                                  |
-|                                | Total Memory                             | Across all executors         | 2880 GB                           | `360 × 8 GB memory`                                              |
-| **Tuning / Performance Tips**  | Executor Sizing                          | Adjust cores/memory          | See above                         | Avoid OOM, GC overhead                                           |
-|                                | Parallelism                              | `spark.default.parallelism`  | 2–3× total cores                  | Ensure all cores are utilized efficiently                        |
-|                                | Shuffle Optimization                     | `spark.sql.adaptive.enabled` | true                              | Dynamically tune shuffle partitions                              |
-|                                | Broadcast Join                           | Small lookup tables          | `broadcast(df)`                   | Reduces shuffle data volume                                      |
-|                                | Caching / Persisting                     | Reused DataFrames            | `.cache()` or `.persist()`        | Avoids recomputation overhead                                    |
-|                                | Data Skew                                | Uneven partition sizes       | Repartition / Salting             | Prevents straggler tasks                                         |
-|                                | Monitoring                               | Spark UI / History Server    | -                                 | Inspect stage execution time, shuffle read/write, executor usage |
+**Suggested `spark-submit` (based on above integer sizing):**
+
+```bash
+spark-submit \
+  --master yarn \
+  --deploy-mode cluster \
+  --num-executors 39 \
+  --executor-cores 5 \
+  --executor-memory 12g \
+  --queue default \
+  your_spark_job.py
+```
+
+| **Metric / Step**                      | **Formula / Explanation**                                                                 | **Value (Example)**         | **Cluster Utilization (Approx.)** |
+|----------------------------------------|-------------------------------------------------------------------------------------------|-----------------------------|-----------------------------------|
+| **Nodes**                              | Number of worker nodes in the cluster                                                     | **10**                      | —                                 |
+| **RAM per Node**                       | Total RAM available on each node                                                          | **64 GB**                   | Total cluster RAM = 64 × 10 = 640 GB |
+| **Cores per Node**                     | Total CPU cores available on each node                                                    | **24 cores**                | Total cluster cores = 24 × 10 = 240 cores |
+| **Reserved Cores (for OS/HDFS)**       | Reserve 1 core per node for system/HDFS operations                                        | **1 core/node**             | Reserved cores = 1 × 10 = 10 cores |
+| **Total Cores (Cluster)**              | `(Cores per Node × Nodes) - (Reserved Cores × Nodes)`                                     | (24×10) - (1×10) = **230 cores** | Usable cores ≈ **230**            |
+| **Cores per Executor** (`--executor-cores`) | Number of cores assigned to each executor (optimal 3–7)                                   | **5 cores**                 | —                                 |
+| **Executors per Node (float)**         | `(Cores per Node - Reserved) ÷ Cores per Executor`                                        | (24 - 1) ÷ 5 = **4.6**      | —                                 |
+| **Executors per Node (rounded)**       | Round down to nearest integer (must be whole number)                                      | **4 executors/node**        | Executors consume (4 × 5) = 20 cores/node |
+| **Total Executors (`--num-executors`)**| `(Executors per Node × Nodes) - 1 (for Application Master)`                               | (4×10) - 1 = **39 executors** | **Total executors = 39**         |
+| **Allocated Cores (job)**              | `Total Executors × Cores per Executor`                                                    | 39 × 5 = **195 cores**      | CPU utilization = 195 ÷ 230 ≈ **85%** |
+| **RAM per Executor (`--executor-memory`)** | `(RAM per Node ÷ Executors per Node) × (1 - overhead%)`, overhead ≈ 7%                    | (64 ÷ 4.6) × 0.93 ≈ **12 GB** | Memory per node used = 4 × 12 = 48 GB/node |
+| **Total Executor Memory (Cluster)**    | `Total Executors × RAM per Executor`                                                      | 39 × 12 = **468 GB**        | RAM utilization = 468 ÷ 640 ≈ **73%** |
+| **Data Size (Example)**                | Estimated input dataset size                                                              | **230 GB**                  | Data-to-core guideline: ~1 core per GB ⇒ need ≈230 cores |
+| **Data-to-Core Ratio (Rule of Thumb)** | Rough guideline — ~1 Core per GB for balanced performance                                 | 230 GB ⇒ **≈230 cores**     | For this job: allocated cores = 195 (slightly under guideline) |
+| **Practical Ranges / Notes**           | Cores/executor: **3–7** │ Memory/executor: **10–40 GB** │ Reserve 1 core/node & ~7–10% RAM for OS | Use Spark UI to tweak; leave buffer for other services |
+
+
+
+### Quick interpretation / tips
+
+* **CPU ~85%** and **RAM ~73%** utilization: good utilization with a safe buffer left for OS/Hadoop daemons and other services.
+* If you need strict data-to-core parity (1 core per GB for 230 GB), increase executors/cores to reach ~230 cores — but monitor GC and shuffle overhead.
+* Use Spark UI (Executors/Stages/Storage tabs) to validate actual utilization and adjust `--num-executors` / `--executor-memory` accordingly.
 
 
 ---
