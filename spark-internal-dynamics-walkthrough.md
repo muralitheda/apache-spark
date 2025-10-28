@@ -924,15 +924,12 @@ spark-submit \
 * If you need strict data-to-core parity (1 core per GB for 230 GB), increase executors/cores to reach ~230 cores — but monitor GC and shuffle overhead.
 * Use Spark UI (Executors/Stages/Storage tabs) to validate actual utilization and adjust `--num-executors` / `--executor-memory` accordingly.
 
-
 ---
-
-
 
 ## How to handle variable data volume efficiently in Spark? — i.e., when source data size (or record count) changes frequently?
 
 
-### Core Techniques to Handle Variable Source Data Size
+### 🎯 Core Techniques to Handle Variable Source Data Size
 
 | Category                                | Technique                                       | Explanation                                                                                                                                                                                                                                                                                                                                            |
 | --------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -945,7 +942,7 @@ spark-submit \
 | **5️⃣ Monitoring**                      | **Adaptive Query Execution (AQE)** *(Spark 3+)* | Automatically optimizes shuffle partitions, join strategy, etc., at runtime. <br>✅ `spark.sql.adaptive.enabled=true`                                                                                                                                                                                                                                   |
 
 
-### Example Breakdown (Your spark-submit Command)
+### 🎯 Example Breakdown (Your spark-submit Command)
 
 ```bash
 spark-submit --master yarn --deploy-mode client \
@@ -966,7 +963,7 @@ spark-submit --master yarn --deploy-mode client \
 gs://xxyy/etl_job.py
 ```
 
-### What this achieves:
+### 🎯 What this achieves:
 
 | Feature                    | Purpose                                                              |
 | -------------------------- | -------------------------------------------------------------------- |
@@ -976,7 +973,7 @@ gs://xxyy/etl_job.py
 | `shuffle.compress=true`    | Compresses shuffle data to reduce network I/O.                       |
 
 
-### Optional Enhancements
+### 🎯 Optional Enhancements
 
 | Enhancement                                                       | Why                                                                 |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
@@ -985,7 +982,7 @@ gs://xxyy/etl_job.py
 | Monitor via Spark UI                                              | Track stage/task execution to tune partition and executor settings. |
 
 
-### Example Logic Inside Script
+### 🎯 Example Logic Inside Script
 
 You can even make it dynamic in code:
 
@@ -1001,7 +998,7 @@ else:
     df = df.coalesce(5)
 ```
 
-### **Summary**
+### 🎯 **Summary**
 
 > **To handle variable data sizes efficiently:**
 
@@ -1015,12 +1012,12 @@ else:
 
 ## Why Spark Job is not uniformly running various every time? Sometimes the job is completing faster and sometimes it slow?
 
-### **Symptom**
+### 🎯 **Symptom**
 
 Same job finishes fast sometimes, but slow at other times.  
 Not applicable for Spark Serverless or BQ ondemand.
 
-### **Causes**
+### 🎯 **Causes**
 
 | Cause                             | Description                                                        |
 | --------------------------------- | ------------------------------------------------------------------ |
@@ -1030,7 +1027,7 @@ Not applicable for Spark Serverless or BQ ondemand.
 | **Dynamic allocation behavior**   | Executors added/removed too aggressively.                          |
 | **Shuffle/network load**          | High I/O during heavy jobs or peak hours.                          |
 
-### **Fixes**
+### 🎯 **Fixes**
 
 | Area              | Recommendation                                                             |
 | ----------------- | -------------------------------------------------------------------------- |
@@ -1041,7 +1038,7 @@ Not applicable for Spark Serverless or BQ ondemand.
 | **Reliability**   | Enable speculation: `spark.speculation=true`.                              |
 
 
-### **Example Settings**
+### 🎯 **Example Settings**
 
 ```bash
 --conf spark.dynamicAllocation.enabled=true
@@ -1050,7 +1047,7 @@ Not applicable for Spark Serverless or BQ ondemand.
 --conf spark.speculation=true
 ```
 
-### **Summary**
+### 🎯 **Summary**
 
 > Job speed variation mainly comes from **cluster contention** or **data size changes**.
 > Use **dynamic allocation**, **adaptive execution**, and **better scheduling** to stabilize performance.
