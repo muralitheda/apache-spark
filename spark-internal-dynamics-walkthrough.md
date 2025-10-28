@@ -1139,8 +1139,29 @@ When logs alone are not sufficient, we follow a structured RCA approach combinin
 
 > RCA for Spark issues isn’t limited to reading logs — it combines **log analysis, live simulation in Prod (with care)**, and **code replication in lower environments** to isolate whether the issue lies in **data, environment, or logic**.
 
+---
+
+## Due to a data issue, the Spark job is failing while loading data into BigQuery. The source system is not ready to fix the data at their end. How would you mitigate this situation?
+
+### ✅ **Answer:**
+
+If the source system cannot fix the data, we handle it **gracefully within our pipeline** to ensure business continuity — without compromising data quality.
+
+| Step                                              | Approach                                                                                            | Example / Explanation                                                                         |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **1️⃣ Identify Impact**                           | Understand which columns or records are problematic (nulls, bad formats, missing mandatory fields). | e.g., Missing `account_number` or invalid `date_of_birth`.                                    |
+| **2️⃣ Apply Code Patches / Data Transformations** | Implement fallback logic or derived field generation to make the data loadable.                     | e.g., If `account_number` is missing, derive a surrogate ID like `concat(phone_number, dob)`. |
+| **3️⃣ Handle Invalid Records Separately**         | Route bad or unverifiable records to a **quarantine/reject table** for manual review.               | Keeps BQ load successful and traceable.                                                       |
+| **4️⃣ Add Data Quality Flags**                    | Introduce columns like `record_quality_status = 'Derived' or 'Original'`.                           | Helps distinguish corrected vs. source data.                                                  |
+| **5️⃣ Communicate & Document**                    | Inform the source team and business users about the applied patch logic.                            | Ensures transparency and auditability.                                                        |
+
+### 🧾 **Summary**
+
+> When the source cannot correct data, **handle issues programmatically** — apply transformation or fallback logic, route invalid data to a reject path, and tag the records for traceability.
+> This keeps the **pipeline stable** while ensuring **data accountability**.
 
 ---
+
 ## 12. Schema & Cast Examples
 
 ```python
