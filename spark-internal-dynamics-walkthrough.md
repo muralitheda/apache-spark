@@ -929,10 +929,10 @@ spark-submit \
 
 
 
-## How to handle *variable data volume* efficiently in Spark? — i.e., when source data size (or record count) changes frequently?
+## How to handle variable data volume efficiently in Spark? — i.e., when source data size (or record count) changes frequently?
 
 
-### ⚙️ **Core Techniques to Handle Variable Source Data Size**
+### Core Techniques to Handle Variable Source Data Size
 
 | Category                                | Technique                                       | Explanation                                                                                                                                                                                                                                                                                                                                            |
 | --------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -945,7 +945,7 @@ spark-submit \
 | **5️⃣ Monitoring**                      | **Adaptive Query Execution (AQE)** *(Spark 3+)* | Automatically optimizes shuffle partitions, join strategy, etc., at runtime. <br>✅ `spark.sql.adaptive.enabled=true`                                                                                                                                                                                                                                   |
 
 
-### 🧠 Example Breakdown (Your spark-submit Command)
+### Example Breakdown (Your spark-submit Command)
 
 ```bash
 spark-submit --master yarn --deploy-mode client \
@@ -966,7 +966,7 @@ spark-submit --master yarn --deploy-mode client \
 gs://source1-weblog-bucket-we45/code/usecase5/Usecase5_gcsToBQRawToBQCurated.py
 ```
 
-#### ✅ What this achieves:
+### What this achieves:
 
 | Feature                    | Purpose                                                              |
 | -------------------------- | -------------------------------------------------------------------- |
@@ -976,8 +976,7 @@ gs://source1-weblog-bucket-we45/code/usecase5/Usecase5_gcsToBQRawToBQCurated.py
 | `shuffle.compress=true`    | Compresses shuffle data to reduce network I/O.                       |
 
 
-
-### 🧩 Optional Enhancements
+### Optional Enhancements
 
 | Enhancement                                                       | Why                                                                 |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
@@ -986,7 +985,7 @@ gs://source1-weblog-bucket-we45/code/usecase5/Usecase5_gcsToBQRawToBQCurated.py
 | Monitor via Spark UI                                              | Track stage/task execution to tune partition and executor settings. |
 
 
-### 🔍 Example Logic Inside Script
+### Example Logic Inside Script
 
 You can even make it dynamic in code:
 
@@ -1002,8 +1001,7 @@ else:
     df = df.coalesce(5)
 ```
 
-
-### ✅ **Summary**
+### **Summary**
 
 > **To handle variable data sizes efficiently:**
 
@@ -1013,6 +1011,7 @@ else:
 * Enable **compression, speculation, and AQE** for adaptive performance
 
 ---
+
 ## 12. Schema & Cast Examples
 
 ```python
