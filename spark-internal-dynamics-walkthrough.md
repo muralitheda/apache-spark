@@ -963,7 +963,7 @@ spark-submit --master yarn --deploy-mode client \
 --conf spark.dynamicAllocation.executorIdleTimeout=30s \
 --conf spark.shuffle.service.enabled=true \
 --conf spark.sql.shuffle.partitions=4 \
-gs://source1-weblog-bucket-we45/code/usecase5/Usecase5_gcsToBQRawToBQCurated.py
+gs://xxyy/etl_job.py
 ```
 
 ### What this achieves:
