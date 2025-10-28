@@ -1111,6 +1111,34 @@ Not applicable for Spark Serverless or BQ ondemand.
 > **Full restart** if dependent transformations are affected, or **partial rerun** if modular checkpoints exist.
 > Long term, add **error handling, step tracking, and job modularization (Airflow)** to reduce rerun effort.
 
+---
+
+
+
+## If we face a performance or data issue in a Spark job, how do you perform RCA (Root Cause Analysis) beyond just checking logs?
+
+### ✅ **Answer:**
+
+When logs alone are not sufficient, we follow a structured RCA approach combining environment checks, simulation, and controlled testing:
+
+| Step                                           | Action                                                                                                                                                                                           | Purpose                                                                                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1️⃣ Analyze Logs & Metrics**                 | Review **YARN AppMaster**, **container logs**, and **Spark driver/executor logs** for stage/task-level errors and memory usage.                                                                  | Identify initial failure point or resource bottleneck.                                                                                     |
+| **2️⃣ Perform EDA / Simulation in Production** | With Prod support help, we can start a **REPL (Spark shell or PySpark session)** on the **same production cluster configuration** and **rerun the failing logic** using the problematic dataset. | This reproduces the issue in the same environment — a **foolproof way** to confirm if the problem is data-specific or environment-related. |
+| **3️⃣ Reproduce in Development Environment**   | Replicate the same code in **DEV or QA**, using a smaller or masked subset of data (since Prod data usually can’t be copied).                                                                    | Helps isolate **code logic** or transformation issues independent of environment.                                                          |
+| **4️⃣ Compare Resource & Data Stats**          | Compare data volume, skew, null count, partition distribution, and executor metrics between successful and failed runs.                                                                          | Detects whether the root cause is **data growth/skew** or **infrastructure performance**.                                                  |
+
+
+### 🧩 **Extra Best Practices**
+
+* Maintain **historical metrics** (record counts, partition sizes, run durations) for anomaly detection.
+* Automate **data validation** before processing (schema, null, range checks).
+* Involve **onshore Prod support** early for secure Prod-level testing access.
+
+### 🧾 **Summary**
+
+> RCA for Spark issues isn’t limited to reading logs — it combines **log analysis, live simulation in Prod (with care)**, and **code replication in lower environments** to isolate whether the issue lies in **data, environment, or logic**.
+
 
 ---
 ## 12. Schema & Cast Examples
