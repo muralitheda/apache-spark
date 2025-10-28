@@ -1012,6 +1012,50 @@ else:
 
 ---
 
+
+## Why Spark Job is not uniformly running various every time? Sometimes the job is completing faster and sometimes it slow?
+
+### **Symptom**
+
+Same job finishes fast sometimes, but slow at other times.
+
+### **Causes**
+
+| Cause                             | Description                                                        |
+| --------------------------------- | ------------------------------------------------------------------ |
+| **Resource contention**           | Other jobs using cluster CPU/memory; your job waits in YARN queue. |
+| **Variable data size**            | Input volume changes daily → more shuffle & memory use.            |
+| **Uneven partitions / data skew** | Some tasks take longer due to heavier partitions.                  |
+| **Dynamic allocation behavior**   | Executors added/removed too aggressively.                          |
+| **Shuffle/network load**          | High I/O during heavy jobs or peak hours.                          |
+
+### **Fixes**
+
+| Area              | Recommendation                                                             |
+| ----------------- | -------------------------------------------------------------------------- |
+| **Scaling**       | Enable **Dynamic Allocation** & **AQE** to auto-tune partitions/resources. |
+| **Scheduling**    | Run job during **off-peak hours** or limit other heavy jobs.               |
+| **Resources**     | Increase executor cores/memory or container size for spikes.               |
+| **Skew handling** | Use **repartition**, **salting**, or **broadcast joins**.                  |
+| **Reliability**   | Enable speculation: `spark.speculation=true`.                              |
+
+
+### **Example Settings**
+
+```bash
+--conf spark.dynamicAllocation.enabled=true
+--conf spark.dynamicAllocation.maxExecutors=10
+--conf spark.sql.adaptive.enabled=true
+--conf spark.speculation=true
+```
+
+### **Summary**
+
+> Job speed variation mainly comes from **cluster contention** or **data size changes**.
+> Use **dynamic allocation**, **adaptive execution**, and **better scheduling** to stabilize performance.
+
+---
+
 ## 12. Schema & Cast Examples
 
 ```python
