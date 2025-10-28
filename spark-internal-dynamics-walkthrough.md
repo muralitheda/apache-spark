@@ -926,6 +926,93 @@ spark-submit \
 
 
 ---
+
+
+
+## How to handle *variable data volume* efficiently in Spark? — i.e., when source data size (or record count) changes frequently?
+
+
+### ⚙️ **Core Techniques to Handle Variable Source Data Size**
+
+| Category                                | Technique                                       | Explanation                                                                                                                                                                                                                                                                                                                                            |
+| --------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **1️⃣ Partition Tuning**                | **`repartition()` / `coalesce()`**              | Adjusts the number of partitions at runtime based on data size.  <br>• Use `repartition(n)` to **increase** partitions (causes shuffle).  <br>• Use `coalesce(n)` to **reduce** partitions (avoids shuffle).                                                                                                                                           |
+|                                         | **`spark.sql.shuffle.partitions`**              | Controls the default number of partitions for shuffle operations (e.g., joins, aggregations). <br>✅ Example: `spark.conf.set("spark.sql.shuffle.partitions", 4)`                                                                                                                                                                                       |
+|                                         | **Custom Input Splitting**                      | When reading from sources like HDFS, GCS, or S3, you can define block size or number of partitions. <br>✅ Example: `spark.read.option("maxPartitionBytes", "128MB")`                                                                                                                                                                                   |
+| **2️⃣ Resource Scaling**                | **YARN Dynamic Allocation**                     | Enables Spark to automatically **scale executors up or down** based on workload. <br>Key configs: <br>`\n--conf spark.dynamicAllocation.enabled=true\n--conf spark.dynamicAllocation.minExecutors=2\n--conf spark.dynamicAllocation.maxExecutors=5\n--conf spark.shuffle.service.enabled=true\n--conf spark.dynamicAllocation.executorIdleTimeout=30s` |
+| **3️⃣ Data Skew / Small Data Handling** | **Broadcast Joins**                             | If one dataset is small, broadcast it to all executors to avoid shuffle. <br>✅ Example: `broadcast(df_small)`                                                                                                                                                                                                                                          |
+| **4️⃣ Compression and Speculation**     | **Compression + Speculative Execution**         | Ensures better performance and fault tolerance for variable workloads. <br>✅ Example: `--conf spark.shuffle.compress=true` and `--conf spark.speculation=true`                                                                                                                                                                                         |
+| **5️⃣ Monitoring**                      | **Adaptive Query Execution (AQE)** *(Spark 3+)* | Automatically optimizes shuffle partitions, join strategy, etc., at runtime. <br>✅ `spark.sql.adaptive.enabled=true`                                                                                                                                                                                                                                   |
+
+
+### 🧠 Example Breakdown (Your spark-submit Command)
+
+```bash
+spark-submit --master yarn --deploy-mode client \
+--jars gs://spark-lib/bigquery/spark-3.1-bigquery-0.32.2.jar \
+--queue default \
+--driver-memory 512m \
+--executor-cores 2 \
+--executor-memory 512m \
+--conf spark.shuffle.compress=true \
+--conf spark.speculation=true \
+--conf spark.dynamicAllocation.enabled=true \
+--conf spark.dynamicAllocation.initialExecutors=2 \
+--conf spark.dynamicAllocation.minExecutors=2 \
+--conf spark.dynamicAllocation.maxExecutors=5 \
+--conf spark.dynamicAllocation.executorIdleTimeout=30s \
+--conf spark.shuffle.service.enabled=true \
+--conf spark.sql.shuffle.partitions=4 \
+gs://source1-weblog-bucket-we45/code/usecase5/Usecase5_gcsToBQRawToBQCurated.py
+```
+
+#### ✅ What this achieves:
+
+| Feature                    | Purpose                                                              |
+| -------------------------- | -------------------------------------------------------------------- |
+| `dynamicAllocation.*`      | Dynamically increases or decreases executors depending on data size. |
+| `sql.shuffle.partitions=4` | Reduces shuffle overhead for smaller datasets.                       |
+| `speculation=true`         | Avoids long-running tasks from slowing down job completion.          |
+| `shuffle.compress=true`    | Compresses shuffle data to reduce network I/O.                       |
+
+
+
+### 🧩 Optional Enhancements
+
+| Enhancement                                                       | Why                                                                 |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `spark.sql.adaptive.enabled=true`                                 | Enables AQE (auto-adjusts partitions at runtime).                   |
+| `spark.sql.adaptive.shuffle.targetPostShuffleInputSize=134217728` | Targets ~128 MB per shuffle partition.                              |
+| Monitor via Spark UI                                              | Track stage/task execution to tune partition and executor settings. |
+
+
+### 🔍 Example Logic Inside Script
+
+You can even make it dynamic in code:
+
+```python
+df = spark.read.parquet(input_path)
+num_rows = df.count()
+
+if num_rows > 10_000_000:
+    df = df.repartition(200)
+elif num_rows > 1_000_000:
+    df = df.repartition(50)
+else:
+    df = df.coalesce(5)
+```
+
+
+### ✅ **Summary**
+
+> **To handle variable data sizes efficiently:**
+
+* Scale **partitions** (`repartition`/`coalesce`/`sql.shuffle.partitions`)
+* Scale **resources** (YARN dynamic allocation)
+* Use **broadcast joins** for small datasets
+* Enable **compression, speculation, and AQE** for adaptive performance
+
+---
 ## 12. Schema & Cast Examples
 
 ```python
