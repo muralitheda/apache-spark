@@ -1083,12 +1083,12 @@ Not applicable for Spark Serverless or BQ ondemand.
 
 ### 🔁 **Rerun Strategy**
 
-| Scenario                           | Strategy                                                                                                         |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| ✅ **Full Restart (slow but safe)** | If job is interdependent (joins, overwrites, deletes) — **delete old partition** and restart end-to-end.         |
+| Scenario                           | Strategy                                                                                                      |
+| ---------------------------------- |---------------------------------------------------------------------------------------------------------------|
+| ✅ **Full Restart (slow but safe)** | If job is interdependent (joins, overwrites, deletes) — **delete old partition** and restart end-to-end.      |
 | ✅ **Partial Restart (fast)**       | If pipeline is modular (ingestion → staging → transform → load), rerun only failed step using persisted outputs. |
-| ✅ **Airflow Rerun Commands**       | `bash airflow tasks clear <dag_id> <task_id> airflow tasks run <dag_id> <task_id> <execution_date>`              |
-| 🟨 **Use Step Markers / Flags**    | Maintain completion flags or metadata tables to enable rerun from last successful checkpoint.                    |
+| ✅ **Airflow Rerun Commands**       | airflow tasks clear <dag_id> <task_id>  <br/> airflow tasks run <dag_id> <task_id> <execution_date>           |
+| 🟨 **Use Step Markers / Flags**    | Maintain completion flags or metadata tables to enable rerun from last successful checkpoint.                 |
 
 
 ### 🧩 **Preventive & Design Measures**
