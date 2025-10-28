@@ -1017,7 +1017,8 @@ else:
 
 ### **Symptom**
 
-Same job finishes fast sometimes, but slow at other times.
+Same job finishes fast sometimes, but slow at other times.  
+Not applicable for Spark Serverless or BQ ondemand.
 
 ### **Causes**
 
@@ -1056,6 +1057,65 @@ Same job finishes fast sometimes, but slow at other times.
 
 ---
 
+
+
+## A daily Spark job that processes around 90 million records fails midway. How would you perform a Root Cause Analysis (RCA) and decide how to rerun the job efficiently?
+
+### 🎯 **Common Failure Reasons**
+
+| Category                                  | Examples                                                                                                      |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| ✅ **Data Issues**                         | Nulls in mandatory columns, invalid date formats, field length overflow, special characters, encoding errors. |
+| ✅ **Resource Constraints**                | Executor OOM, CPU exhaustion, timeouts, insufficient YARN memory, cluster contention.                         |
+| ✅ **Code Errors**                         | Null pointer exceptions, unhandled edge cases, missing dependencies, bad UDF logic.                           |
+| 🟨 **Infrastructure / External Failures** | Temporary network, storage (HDFS/GCS/S3), or BigQuery connectivity issues.                                    |
+
+
+
+### 🧠 **RCA Steps**
+
+| Step                         | Action                                                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| ✅ **1. Check Logs**          | Examine Spark UI / YARN History Server logs to identify failing stage or exception type.                                      |
+| ✅ **2. Identify Root Cause** | Based on the error: <br>• Data issue → bad records <br>• Resource issue → OOM/timeouts <br>• Code issue → review stack trace. |
+| ✅ **3. Data Handling**       | For minor data errors, apply null handling, reject logic, or pre-validation (data audit checks).                              |
+| ✅ **4. Upstream Correction** | If data corruption is major or mandatory fields missing → request source data resend.                                         |
+| 🟨 **5. Track Failed Stage** | Note the exact stage/partition ID or marker to decide partial vs. full rerun.                                                 |
+
+
+
+### 🔁 **Rerun Strategy**
+
+| Scenario                           | Strategy                                                                                                         |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| ✅ **Full Restart (slow but safe)** | If job is interdependent (joins, overwrites, deletes) — **delete old partition** and restart end-to-end.         |
+| ✅ **Partial Restart (fast)**       | If pipeline is modular (ingestion → staging → transform → load), rerun only failed step using persisted outputs. |
+| ✅ **Airflow Rerun Commands**       | `bash airflow tasks clear <dag_id> <task_id> airflow tasks run <dag_id> <task_id> <execution_date>`              |
+| 🟨 **Use Step Markers / Flags**    | Maintain completion flags or metadata tables to enable rerun from last successful checkpoint.                    |
+
+
+### 🧩 **Preventive & Design Measures**
+
+| Area                                    | Recommendation                                                                        |
+| --------------------------------------- | ------------------------------------------------------------------------------------- |
+| ✅ **Error Handling**                    | Add validations, try/except blocks, and known data fixes.                             |
+| ✅ **Intermediate Outputs**              | Save results after major stages (Parquet + Snappy).                                   |
+| ✅ **Performance Optimization**          | Tune executor memory, partitions, and enable dynamic allocation/AQE.                  |
+| ✅ **Partial Rerun Enablement**          | Use flags, checkpoints, or modular design.                                            |
+| ✅ **Workflow Management**               | Split large jobs into multiple **Airflow tasks** for better retry granularity.        |
+| 🟨 **Monitoring & Alerts**              | Configure alerting (email/Slack) on task failure with error snapshot for quick RCA.   |
+| 🟨 **Version Control for Code Changes** | Maintain job version to trace whether failure correlates to a recent code deployment. |
+
+
+
+### ✅ **Summary**
+
+> When a Spark job fails midway, first identify *why* (data, resource, or code issue) via Spark/YARN logs, then choose the right rerun approach:
+> **Full restart** if dependent transformations are affected, or **partial rerun** if modular checkpoints exist.
+> Long term, add **error handling, step tracking, and job modularization (Airflow)** to reduce rerun effort.
+
+
+---
 ## 12. Schema & Cast Examples
 
 ```python
