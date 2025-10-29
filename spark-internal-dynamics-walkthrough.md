@@ -1625,6 +1625,54 @@ spark.stop()
 
 ---
 
+## 3.Schema Evolution using unionByName() in PySpark?
+
+🎯 Scenario
+You have employee data coming monthly —
+Jan data (old schema) → no salary column
+Feb data (new schema) → added salary column
+We need to combine both datasets safely even though their schemas differ.
+
+```python
+from pyspark.sql import SparkSession
+from pyspark.sql import Row
+
+spark = SparkSession.builder.appName("SchemaEvolutionExample").getOrCreate()
+
+# --- January data (old schema)
+data_jan = [Row(id=1, name="James"),
+            Row(id=2, name="Maria")]
+df_jan = spark.createDataFrame(data_jan)
+
+# --- February data (new schema: added 'salary')
+data_feb = [Row(id=3, name="Robert", salary=5000),
+            Row(id=4, name="Jen", salary=6000)]
+df_feb = spark.createDataFrame(data_feb)
+
+print("=== January Data ===")
+df_jan.show()
+print("=== February Data ===")
+df_feb.show()
+
+# --- Schema Evolution using unionByName
+df_union = df_jan.unionByName(df_feb, allowMissingColumns=True)
+
+print("=== Combined Data After unionByName ===")
+df_union.show()
+df_union.printSchema()
+
+# --- Write as Parquet (simulating monthly folders)
+df_jan.write.mode("overwrite").parquet("employees/2023-01/")
+df_feb.write.mode("overwrite").parquet("employees/2023-02/")
+
+# --- Read back with automatic schema merging
+df_parquet = spark.read.option("mergeSchema", "true").parquet("employees/")
+print("=== Parquet Schema Merged Automatically ===")
+df_parquet.printSchema()
+df_parquet.show()
+
+```
+
 ## 12. Schema & Cast Examples
 
 ```python
