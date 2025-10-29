@@ -1405,13 +1405,13 @@ Even cached data can be **evicted** if new data needs memory space — so cachin
 
 ### ⚙️ **Detailed Behavior**
 
-| **Scenario**                                 | **What Happens**                                   | **Result**                              |
-| -------------------------------------------- | -------------------------------------------------- | --------------------------------------- |
-| Data < Executor Memory                       | Entire RDD/DataFrame cached in memory              | Fast re-use from memory                 |
-| Data > Executor Memory                       | Only part of RDD cached; rest recomputed on access | Partial recomputation overhead          |
-| New data cached later                        | Older cached blocks evicted (LRU policy)           | Eviction of least-used data             |
-| Cache + Disk persistence (`MEMORY_AND_DISK`) | Overflow data written to disk                      | Prevents recomputation cost             |
-| Cache + Serialization (`MEMORY_ONLY_SER`)    | Data stored in serialized form to save memory      | Reduced memory footprint, slower access |
+| **Scenario**                                 | **What Happens**                                               | **Result**                              |
+| -------------------------------------------- |----------------------------------------------------------------| --------------------------------------- |
+| Data < Executor Memory                       | Entire RDD/DataFrame cached in memory                          | Fast re-use from memory                 |
+| Data > Executor Memory                       | Only part of RDD cached; rest recomputed on access             | Partial recomputation overhead          |
+| New data cached later                        | Older cached blocks evicted (LRU policy - Least Resently Used) | Eviction of least-used data             |
+| Cache + Disk persistence (`MEMORY_AND_DISK`) | Overflow data written to disk                                  | Prevents recomputation cost             |
+| Cache + Serialization (`MEMORY_ONLY_SER`)    | Data stored in serialized form to save memory                  | Reduced memory footprint, slower access |
 
 ### 🧩 Example
 
