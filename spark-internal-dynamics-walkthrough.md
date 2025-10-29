@@ -1514,6 +1514,64 @@ df = spark.createDataFrame(data, schema)
 df2 = df.withColumn("age_str", col("age").cast("string"))
 df2.show()
 ```
+---
+
+## 💥 When Out of Memory (OOM) Occurs in Spark?
+
+Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (either on the **Driver** or **Executor**) is not enough for the workload being processed.
+
+
+### 🧠 1. Driver OOM (Out Of Memory in Driver Node)
+
+| Cause                                                          | Explanation                                                                                    | Example                                       | Prevention / Fix                                                                                    |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| **`rdd.collect()` or `df.collect()` on large datasets**        | Brings all data from executors to the driver, exceeding driver memory.                         | `df.collect()` on millions of rows.           | Use `take(n)`, `sample()`, or write to file instead of collecting full data.                        |
+| **`sparkContext.broadcast()` of large data**                   | Broadcasting large datasets from driver to executors causes driver memory pressure.            | Broadcasting large lookup tables.             | Use small reference data for broadcast; store large data in distributed storage (e.g., HDFS, Hive). |
+| **Low driver memory configuration**                            | Insufficient memory allocated using `--driver-memory`.                                         | e.g., Only 1 GB driver memory for large jobs. | Increase memory: `--driver-memory 4g` or higher.                                                    |
+| **Large Job Plans / DAGs**                                     | Extremely complex query plans (too many transformations) consume high memory for DAG creation. | Complex joins, long lineage RDDs.             | Use checkpoints or persist intermediate data.                                                       |
+| **Collecting metadata / results in actions like `toPandas()`** | Converts Spark DataFrame to local Pandas DF — all data moves to driver.                        | `df.toPandas()` on big data.                  | Use Spark operations for aggregations instead of moving to Pandas.                                  |
+
+### ⚙️ 2. Executor OOM (Out Of Memory in Worker Nodes)
+
+| Cause                                                         | Explanation                                                                                        | Example                                      | Prevention / Fix                                                                    |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **Large shuffles (joins, groupBy, reduceByKey, repartition)** | Intermediate shuffle data exceeds executor memory during aggregation.                              | `df.groupBy("key").agg(...)` on skewed keys. | Tune partitions, use broadcast joins, or increase `executor-memory`.                |
+| **Data skew**                                                 | One or few partitions contain much more data than others.                                          | Key-based skew during joins.                 | Use salting or skew join optimization (`spark.sql.adaptive.skewJoin.enabled=true`). |
+| **Caching / persisting large data**                           | Persisting big DataFrames without enough memory causes spilling or OOM.                            | `.cache()` multiple big DFs.                 | Cache only required DFs, or use `DISK_ONLY` storage level.                          |
+| **Improper memory split (storage vs execution)**              | Spark divides memory between storage (cache) and execution (shuffle). Poor tuning can lead to OOM. | Default ratio not suitable for job workload. | Adjust with `spark.memory.fraction`, `spark.memory.storageFraction`.                |
+| **User-defined functions (UDFs)**                             | UDFs that load big data into memory or return large objects.                                       | UDF reading external data.                   | Optimize UDF logic, or use native Spark SQL functions.                              |
+
+### 🧮 3. Shuffle Memory Pressure
+
+| Issue                                            | Description                                         | Mitigation                                                                             |
+| ------------------------------------------------ | --------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Large shuffle files written to disk or in memory | Joins, groupBy, reduce cause heavy memory use.      | Increase `spark.executor.memoryOverhead`, or enable `spark.sql.adaptive.enabled=true`. |
+| Serialization overhead                           | Large objects during shuffle need to be serialized. | Use `KryoSerializer` for better memory efficiency.                                     |
+
+### 🚑 4. General OOM Prevention Tips
+
+1. **Avoid collect() on large data** – use `limit`, `take`, or store to disk.
+2. **Broadcast only small dataframes** (tens of MBs max).
+3. **Use caching judiciously** — unpersist when not needed.
+4. **Enable adaptive execution** (`spark.sql.adaptive.enabled=true`).
+5. **Monitor Spark UI → Executors tab** to check memory usage.
+6. **Adjust memory configs**:
+
+   ```bash
+   --driver-memory 4g
+   --executor-memory 8g
+   --executor-cores 4
+   --conf spark.memory.fraction=0.8
+   ```
+7. **Handle data skew** using salting or AQE (`adaptive skew join handling`).
+
+### 🔍 Summary Table
+
+| Component    | Common Triggers                                             | Example Symptoms                                      |
+| ------------ | ----------------------------------------------------------- | ----------------------------------------------------- |
+| **Driver**   | collect(), broadcast large RDD, small driver memory         | Driver JVM crash, "OutOfMemoryError: Java heap space" |
+| **Executor** | shuffle-heavy ops, data skew, caching large data            | Stage failure, repeated task retries                  |
+| **Both**     | too many wide transformations or large intermediate results | Long GC pauses, slow job progress, OOM errors         |
 
 ---
 
