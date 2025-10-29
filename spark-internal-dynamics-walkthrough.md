@@ -1662,11 +1662,11 @@ df_union.show()
 df_union.printSchema()
 
 # --- Write as Parquet (simulating monthly folders)
-df_jan.write.mode("overwrite").parquet("employees/2023-01/")
-df_feb.write.mode("overwrite").parquet("employees/2023-02/")
+df_jan.write.mode("overwrite").parquet("hdfs:///home/hduser/employees/2023-01/")
+df_feb.write.mode("overwrite").parquet("hdfs:///home/hduser/employees/2023-02/")
 
 # --- Read back with automatic schema merging
-df_parquet = spark.read.option("mergeSchema", "true").parquet("employees/")
+df_parquet = spark.read.option("mergeSchema", "true").parquet("hdfs:///home/hduser/employees/*/")
 print("=== Parquet Schema Merged Automatically ===")
 df_parquet.printSchema()
 df_parquet.show()
