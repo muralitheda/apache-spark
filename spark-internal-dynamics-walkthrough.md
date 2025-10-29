@@ -1069,7 +1069,7 @@ Not applicable for Spark Serverless or BQ ondemand.
 
 
 
-### 🧠 **RCA Steps**
+### 🎯 **RCA Steps**
 
 | Step                         | Action                                                                                                                        |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
@@ -1080,8 +1080,7 @@ Not applicable for Spark Serverless or BQ ondemand.
 | 🟨 **5. Track Failed Stage** | Note the exact stage/partition ID or marker to decide partial vs. full rerun.                                                 |
 
 
-
-### 🔁 **Rerun Strategy**
+### 🎯 **Rerun Strategy**
 
 | Scenario                           | Strategy                                                                                                      |
 | ---------------------------------- |---------------------------------------------------------------------------------------------------------------|
@@ -1091,7 +1090,7 @@ Not applicable for Spark Serverless or BQ ondemand.
 | 🟨 **Use Step Markers / Flags**    | Maintain completion flags or metadata tables to enable rerun from last successful checkpoint.                 |
 
 
-### 🧩 **Preventive & Design Measures**
+### 🎯 **Preventive & Design Measures**
 
 | Area                                    | Recommendation                                                                        |
 | --------------------------------------- | ------------------------------------------------------------------------------------- |
@@ -1103,9 +1102,7 @@ Not applicable for Spark Serverless or BQ ondemand.
 | 🟨 **Monitoring & Alerts**              | Configure alerting (email/Slack) on task failure with error snapshot for quick RCA.   |
 | 🟨 **Version Control for Code Changes** | Maintain job version to trace whether failure correlates to a recent code deployment. |
 
-
-
-### ✅ **Summary**
+### 🎯 **Summary**
 
 > When a Spark job fails midway, first identify *why* (data, resource, or code issue) via Spark/YARN logs, then choose the right rerun approach:
 > **Full restart** if dependent transformations are affected, or **partial rerun** if modular checkpoints exist.
@@ -1114,10 +1111,9 @@ Not applicable for Spark Serverless or BQ ondemand.
 ---
 
 
-
 ## 24. If we face a performance or data issue in a Spark job, how do you perform RCA (Root Cause Analysis) beyond just checking logs?
 
-### ✅ **Answer:**
+### 🎯 **Answer:**
 
 When logs alone are not sufficient, we follow a structured RCA approach combining environment checks, simulation, and controlled testing:
 
@@ -1129,13 +1125,13 @@ When logs alone are not sufficient, we follow a structured RCA approach combinin
 | **4️⃣ Compare Resource & Data Stats**          | Compare data volume, skew, null count, partition distribution, and executor metrics between successful and failed runs.                                                                          | Detects whether the root cause is **data growth/skew** or **infrastructure performance**.                                                  |
 
 
-### 🧩 **Extra Best Practices**
+### 🎯 **Extra Best Practices**
 
 * Maintain **historical metrics** (record counts, partition sizes, run durations) for anomaly detection.
 * Automate **data validation** before processing (schema, null, range checks).
 * Involve **onshore Prod support** early for secure Prod-level testing access.
 
-### 🧾 **Summary**
+### 🎯 **Summary**
 
 > RCA for Spark issues isn’t limited to reading logs — it combines **log analysis, live simulation in Prod (with care)**, and **code replication in lower environments** to isolate whether the issue lies in **data, environment, or logic**.
 
@@ -1143,7 +1139,7 @@ When logs alone are not sufficient, we follow a structured RCA approach combinin
 
 ## 25. You are working on a data pipeline that loads data from multiple source systems into BigQuery.  During the load, you observe frequent data quality issues — for example, missing account numbers, invalid date formats, and null numeric fields.  The source system owners are not willing to fix these issues at the source. How would you design your ETL pipeline to handle these issues gracefully without blocking the load into BigQuery?
 
-### 🧩 1. Identify and Classify Data Issues
+### 🎯 1. Identify and Classify Data Issues
 
 First, categorize the types of issues:
 
@@ -1155,9 +1151,8 @@ First, categorize the types of issues:
 | Referential integrity    | `customer_id` not in master table | Join fails      | Soft skip or flag       |
 | Schema drift             | New columns added/removed         | Schema mismatch | Dynamic schema handling |
 
----
 
-### ⚙️ 2. Apply Code-Level Patches (Data Cleaning Layer)
+### 🎯 2. Apply Code-Level Patches (Data Cleaning Layer)
 
 Create a **data pre-processing layer** before loading into BigQuery (BQ).
 Examples (in PySpark or SQL transformations):
@@ -1195,7 +1190,7 @@ df = df.withColumn(
 )
 ```
 
-### 🧰 3. Implement a Quarantine or Error Table
+### 🎯 3. Implement a Quarantine or Error Table
 
 Send bad or unverifiable data to a separate **BQ table** (e.g., `error_records`) for audit and later correction.
 
@@ -1211,14 +1206,14 @@ INSERT INTO bq_dataset.main_table
 SELECT * FROM staging_table WHERE error_flag = 'VALID';
 ```
 
-### 🧠 4. Use Data Quality Rules (DQ Layer)
+### 🎯 4. Use Data Quality Rules (DQ Layer)
 
 Add automated checks using tools or scripts:
 
 * **Great Expectations**, **Deequ**, or **custom PySpark checks**
 * Example: Validate all numeric fields or enforce date ranges
 
-### 🧾 5. Communicate Upstream and Document Workarounds
+### 🎯 5. Communicate Upstream and Document Workarounds
 
 Even though the source won’t fix it, maintain:
 
@@ -1226,7 +1221,7 @@ Even though the source won’t fix it, maintain:
 * **Versioned patch scripts** for traceability
 * Regular feedback loops to revisit root causes later
 
-### ✅ Example Summary
+### 🎯 Example Summary
 
 | Problem                  | Impact                 | Mitigation                    |
 | ------------------------ | ---------------------- | ----------------------------- |
@@ -1239,7 +1234,7 @@ Even though the source won’t fix it, maintain:
 
 ## 26. How can you change the number of partitions and cache/persist a DataFrame in PySpark?  Also, how do you check its storage level and partition count?
 
-### ⚙️ **PySpark — Partitions, Cache & Storage Levels (Quick Reference)**
+### 🎯 **PySpark — Partitions, Cache & Storage Levels (Quick Reference)**
 
 | **Command**                 | **Purpose**                      | **Shuffle** | **Example**                            |
 | --------------------------- | -------------------------------- | ----------- | -------------------------------------- |
@@ -1252,7 +1247,7 @@ Even though the source won’t fix it, maintain:
 | `df.rdd.getStorageLevel()`  | Show cache level                 | ❌           | `df.rdd.getStorageLevel()`             |
 
 
-### 💾 **Storage Levels**
+### 🎯 **Storage Levels**
 
 ```
 StorageLevel(useDisk, useMemory, useOffHeap, deserialized, replication)
@@ -1265,7 +1260,7 @@ StorageLevel(useDisk, useMemory, useOffHeap, deserialized, replication)
 | `(True, False, False, False, 1)` | `DISK_ONLY`             | Stored on disk only          |
 
 
-### ✅ ** Example**
+### 🎯 ** Example**
 
 ```python
 ffrom pyspark.sql import SparkSession
@@ -1326,7 +1321,7 @@ Updated Storage Level: StorageLevel(False, True, False, False, 1)
 
 ## 27. How is a Spark application's code distributed and executed across the Driver and Executor nodes?
 
-### Spark Code Execution Location
+### 🎯 Spark Code Execution Location
 
 | Location | Primary Responsibility | Key Operations |
 | :--- | :--- | :--- |
@@ -1342,7 +1337,7 @@ Updated Storage Level: StorageLevel(False, True, False, False, 1)
 | | | * **`accumulator()`:** Driver initializes, Executors update. |
 | | | * **`broadcast()`:** Driver sends the data, Executors cache and use it. |
 
-### Example
+### 🎯 Example
 ```python
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, lit, udf
@@ -1397,13 +1392,13 @@ Accumulator Value: 3
 
 ## 28. What happens when cached data doesn’t fit entirely into executor memory in Spark?
 
-### 🧠 **Short Answer:**
+### 🎯 **Short Answer:**
 
 If the data doesn’t fully fit in memory, **only some partitions get cached**.
 The remaining partitions are **not cached** and will be **recomputed(using RDD lineage) on demand** when accessed again.
 Even cached data can be **evicted** if new data needs memory space — so caching acts as a *hint*, not a strict guarantee.
 
-### ⚙️ **Detailed Behavior**
+### 🎯 **Detailed Behavior**
 
 | **Scenario**                                 | **What Happens**                                               | **Result**                              |
 | -------------------------------------------- |----------------------------------------------------------------| --------------------------------------- |
@@ -1413,7 +1408,7 @@ Even cached data can be **evicted** if new data needs memory space — so cachin
 | Cache + Disk persistence (`MEMORY_AND_DISK`) | Overflow data written to disk                                  | Prevents recomputation cost             |
 | Cache + Serialization (`MEMORY_ONLY_SER`)    | Data stored in serialized form to save memory                  | Reduced memory footprint, slower access |
 
-### 🧩 Example
+### 🎯 Example
 
 ```python
 # MEMORY_ONLY -> If data doesn't fit, uncached partitions recomputed
@@ -1423,7 +1418,7 @@ df.persist(StorageLevel.MEMORY_ONLY)
 df.persist(StorageLevel.MEMORY_AND_DISK)
 ```
 
-### ✅ **Key Takeaway**
+### 🎯 **Key Takeaway**
 
 Caching in Spark is **best-effort**, not guaranteed.
 If memory is insufficient, Spark:
@@ -1437,8 +1432,7 @@ If memory is insufficient, Spark:
 
 Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (either on the **Driver** or **Executor**) is not enough for the workload being processed.
 
-
-### 🧠 1. Driver OOM (Out Of Memory in Driver Node)
+### 🎯 1. Driver OOM (Out Of Memory in Driver Node)
 
 | Cause                                                          | Explanation                                                                                    | Example                                       | Prevention / Fix                                                                                    |
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -1449,7 +1443,7 @@ Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (e
 | **Collecting metadata / results in actions like `toPandas()`** | Converts Spark DataFrame to local Pandas DF — all data moves to driver.                        | `df.toPandas()` on big data.                  | Use Spark operations for aggregations instead of moving to Pandas.                                  |
 
 
-### ⚙️ 2. Executor OOM (Out Of Memory in Worker Nodes)
+### 🎯 2. Executor OOM (Out Of Memory in Worker Nodes)
 
 | Cause                                                         | Explanation                                                                                        | Example                                      | Prevention / Fix                                                                    |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------- |
@@ -1460,7 +1454,7 @@ Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (e
 | **User-defined functions (UDFs)**                             | UDFs that load big data into memory or return large objects.                                       | UDF reading external data.                   | Optimize UDF logic, or use native Spark SQL functions.                              |
 
 
-### 🧮 3. Shuffle Memory Pressure
+### 🎯 3. Shuffle Memory Pressure
 
 | Issue                                            | Description                                         | Mitigation                                                                             |
 | ------------------------------------------------ | --------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -1468,7 +1462,7 @@ Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (e
 | Serialization overhead                           | Large objects during shuffle need to be serialized. | Use `KryoSerializer` for better memory efficiency.                                     |
 
 
-### 🚑 4. General OOM Prevention Tips
+### 🎯 4. General OOM Prevention Tips
 
 1. **Avoid collect() on large data** – use `limit`, `take`, or store to disk.
 2. **Broadcast only small dataframes** (tens of MBs max).
@@ -1486,7 +1480,7 @@ Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (e
 7. **Handle data skew** using salting or AQE (`adaptive skew join handling`).
 
 
-### 🔍 Summary Table
+### 🎯 Summary Table
 
 | Component    | Common Triggers                                             | Example Symptoms                                      |
 | ------------ | ----------------------------------------------------------- | ----------------------------------------------------- |
