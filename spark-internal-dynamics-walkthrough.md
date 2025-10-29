@@ -359,7 +359,7 @@ df_dedup.write.saveAsTable("hive_table")
 * DAG execution is complete, job finishes successfully
 
 
-#### 🔑 Key Internals Summary
+#### Key Internals Summary
 
 | Component                     | Role in CSV → Dedup → Hive                                                               |
 | ----------------------------- | ---------------------------------------------------------------------------------------- |
