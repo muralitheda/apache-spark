@@ -1516,7 +1516,7 @@ df2.show()
 ```
 ---
 
-## 💥 When Out of Memory (OOM) Occurs in Spark?
+## When Out of Memory (OOM) Occurs in Spark?
 
 Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (either on the **Driver** or **Executor**) is not enough for the workload being processed.
 
