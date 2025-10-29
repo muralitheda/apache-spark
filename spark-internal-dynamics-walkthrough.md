@@ -1492,7 +1492,7 @@ Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (e
 
 # ⚡ Spark Functionalities (with Examples)
 
-## 1. Difference between select, selectexpr and withcolumn in Spark DF?
+## 1. Difference between select(), selectExpr() and withColumn() functions in Spark DF?
 
 | Operation                 | Syntax Style      | Adds / Modifies Column | Supports SQL Functions | Common Use                          |
 | ------------------------- | ----------------- | ---------------------- | ---------------------- | ----------------------------------- |
