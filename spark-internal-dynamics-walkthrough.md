@@ -704,7 +704,7 @@ or via Spark History UI.
 
 ---
 
-## What is the total number of jobs/applications runs in your cluster per day?
+## 13. What is the total number of jobs/applications runs in your cluster per day?
 
 | **Cluster Type**              | **Number of Nodes / Environment** | **Share of Jobs**       | **Job Frequency**              | **Notes**                                 | **Resource Utilization**                  | **Example Use Cases**                                          |
 | ----------------------------- | --------------------------------- | ----------------------- | ------------------------------ | ----------------------------------------- | ----------------------------------------- | -------------------------------------------------------------- |
@@ -719,7 +719,7 @@ or via Spark History UI.
 
 ---
 
-## How many Jobs/Pipelines you developed?
+## 14. How many Jobs/Pipelines you developed?
 
 | **Category**                   | **Details**                                              |
 | ------------------------------ | -------------------------------------------------------- |
@@ -740,7 +740,7 @@ or via Spark History UI.
 
 ---
 
-## 13. How to identifying slow jobs, tracking failures, and optimizing Spark jobs
+## 15. How to identifying slow jobs, tracking failures, and optimizing Spark jobs
 
 | **Category**                                                   | **Method / Command**                       | **Purpose / Details**                                               | **Comments / Examples**                                                        |
 | -------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
@@ -771,7 +771,7 @@ This approach ensures you can **monitor, troubleshoot, and optimize jobs effecti
 
 ---
 
-## 14. What errors have you faced while debugging your spark code?
+## 16. What errors have you faced while debugging your spark code?
 
 
 | **Error Type**                   | **Description / Cause**                                           | **Example / Notes**                                                       | **Resolution / Fix**                                                                    |
@@ -787,7 +787,7 @@ This approach ensures you can **monitor, troubleshoot, and optimize jobs effecti
 
 ---
 
-## 15. After performing a **join**, **groupBy**, or **aggregation** operation in Spark, does the **number of partitions** in the resulting DataFrame change? If yes, what determines the new number of partitions and how can it be tuned for better performance?
+## 17. After performing a **join**, **groupBy**, or **aggregation** operation in Spark, does the **number of partitions** in the resulting DataFrame change? If yes, what determines the new number of partitions and how can it be tuned for better performance?
 
 **Expected Answer (Short):**
 Yes — after wide transformations like join, groupBy, or aggregation, Spark triggers a **shuffle**, and the number of output partitions is reset based on the **`spark.sql.shuffle.partitions`** setting (default = **200**).
@@ -799,7 +799,7 @@ spark.conf.set("spark.sql.shuffle.partitions", <new_value>)
 to optimize performance based on data volume and cluster resources.
 
 ---
-## 16. What are the performance challenges you faced in Spark? Have you done any performance tuning by debugging in Spark UI?
+## 18. What are the performance challenges you faced in Spark? Have you done any performance tuning by debugging in Spark UI?
 
 | **Category / Challenge**                           | **Symptoms Observed (Spark UI / Cluster)**                               | **Root Cause Analysis**                                                       | **Tuning / Resolution Applied (Key Techniques)**                                                                                                      |
 | -------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -840,7 +840,7 @@ to optimize performance based on data volume and cluster resources.
 
 ---
 
-## 17. How do you get the size of a DataFrame or RDD in memory (in bytes) in Spark?
+## 19. How do you get the size of a DataFrame or RDD in memory (in bytes) in Spark?
 
 ### **Explanation:**
 
@@ -883,7 +883,7 @@ if __name__ == "__main__":
 
 ---
 
-## 18. How do you submit a Spark job with optimized memory and CPU parameters using spark-submit?
+## 20. How do you submit a Spark job with optimized memory and CPU parameters using spark-submit?
 
 **Suggested `spark-submit` (based on above integer sizing):**
 
@@ -926,7 +926,7 @@ spark-submit \
 
 ---
 
-## 19. How to handle variable data volume efficiently in Spark? — i.e., when source data size (or record count) changes frequently?
+## 21. How to handle variable data volume efficiently in Spark? — i.e., when source data size (or record count) changes frequently?
 
 
 ### 🎯 Core Techniques to Handle Variable Source Data Size
@@ -1010,7 +1010,7 @@ else:
 ---
 
 
-## 20. Why Spark Job is not uniformly running various every time? Sometimes the job is completing faster and sometimes it slow?
+## 22. Why Spark Job is not uniformly running various every time? Sometimes the job is completing faster and sometimes it slow?
 
 ### 🎯 **Symptom**
 
@@ -1056,7 +1056,7 @@ Not applicable for Spark Serverless or BQ ondemand.
 
 
 
-## 21. A daily Spark job that processes around 90 million records fails midway. How would you perform a Root Cause Analysis (RCA) and decide how to rerun the job efficiently?
+## 23. A daily Spark job that processes around 90 million records fails midway. How would you perform a Root Cause Analysis (RCA) and decide how to rerun the job efficiently?
 
 ### 🎯 **Common Failure Reasons**
 
@@ -1115,7 +1115,7 @@ Not applicable for Spark Serverless or BQ ondemand.
 
 
 
-## 22. If we face a performance or data issue in a Spark job, how do you perform RCA (Root Cause Analysis) beyond just checking logs?
+## 24. If we face a performance or data issue in a Spark job, how do you perform RCA (Root Cause Analysis) beyond just checking logs?
 
 ### ✅ **Answer:**
 
@@ -1141,7 +1141,7 @@ When logs alone are not sufficient, we follow a structured RCA approach combinin
 
 ---
 
-## 23. You are working on a data pipeline that loads data from multiple source systems into BigQuery.  During the load, you observe frequent data quality issues — for example, missing account numbers, invalid date formats, and null numeric fields.  The source system owners are not willing to fix these issues at the source. How would you design your ETL pipeline to handle these issues gracefully without blocking the load into BigQuery?
+## 25. You are working on a data pipeline that loads data from multiple source systems into BigQuery.  During the load, you observe frequent data quality issues — for example, missing account numbers, invalid date formats, and null numeric fields.  The source system owners are not willing to fix these issues at the source. How would you design your ETL pipeline to handle these issues gracefully without blocking the load into BigQuery?
 
 ### 🧩 1. Identify and Classify Data Issues
 
@@ -1237,7 +1237,7 @@ Even though the source won’t fix it, maintain:
 
 ---
 
-## 24. How can you change the number of partitions and cache/persist a DataFrame in PySpark?  Also, how do you check its storage level and partition count?
+## 26. How can you change the number of partitions and cache/persist a DataFrame in PySpark?  Also, how do you check its storage level and partition count?
 
 ### ⚙️ **PySpark — Partitions, Cache & Storage Levels (Quick Reference)**
 
@@ -1324,7 +1324,7 @@ Updated Storage Level: StorageLevel(False, True, False, False, 1)
 ```
 ---
 
-## 25. How is a Spark application's code distributed and executed across the Driver and Executor nodes?
+## 27. How is a Spark application's code distributed and executed across the Driver and Executor nodes?
 
 ### Spark Code Execution Location
 
@@ -1395,7 +1395,7 @@ Accumulator Value: 3
 ---
 
 
-## 26. What happens when cached data doesn’t fit entirely into executor memory in Spark?
+## 28. What happens when cached data doesn’t fit entirely into executor memory in Spark?
 
 ### 🧠 **Short Answer:**
 
@@ -1433,7 +1433,7 @@ If memory is insufficient, Spark:
 3. May evict old cache blocks as needed.
 ---
 
-## 💥 27. When Out of Memory (OOM) Occurs in Spark?
+## 29. When Out of Memory (OOM) Occurs in Spark?
 
 Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (either on the **Driver** or **Executor**) is not enough for the workload being processed.
 
