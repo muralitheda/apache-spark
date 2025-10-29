@@ -821,7 +821,7 @@ to optimize performance based on data volume and cluster resources.
 | **16. Non-vectorized Reads/Writes**                | Slow Parquet read/write throughput                                       | Vectorization disabled                                                        | Enabled vectorized reader: `spark.sql.parquet.enableVectorizedReader=true`                                                                            |
 
 
-### ✅ **How Spark UI Helped**
+### 🎯 How Spark UI Helped
 
 | **Spark UI Section** | **Insights Used for Debugging**                                          |
 | -------------------- | ------------------------------------------------------------------------ |
@@ -831,7 +831,7 @@ to optimize performance based on data volume and cluster resources.
 | **Environment Tab**  | Reviewed applied Spark configurations                                    |
 | **Storage Tab**      | Validated whether cached/persisted DataFrames are in memory              |
 
-### **Key Takeaways / Outcomes**
+### 🎯 Key Takeaways / Outcomes
 
 * **30–40% reduction** in overall job execution time
 * **50% decrease** in shuffle data after enabling AQE and broadcast joins
