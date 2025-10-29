@@ -1490,7 +1490,128 @@ Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (e
 
 ---
 
+# ⚡ Spark Functionalities (with Examples)
 
+## 1. Difference between select, selectexpr and withcolumn in Spark DF?
+
+| Operation                 | Syntax Style      | Adds / Modifies Column | Supports SQL Functions | Common Use                          |
+| ------------------------- | ----------------- | ---------------------- | ---------------------- | ----------------------------------- |
+| `withColumn()`            | DataFrame         | ✅ Yes                  | ⚠️ Limited             | Add/modify specific columns         |
+| `select()`                | DataFrame         | ✅ Yes (if aliased)     | ⚠️ Limited             | Select subset of columns            |
+| `selectExpr()`            | Hybrid (DF + SQL) | ✅ Yes (if aliased)     | ✅ Yes                  | SQL-style transformations inside DF |
+| `spark.sql("SELECT ...")` | Pure SQL          | ✅ Yes                  | ✅ Yes                  | Full SQL flexibility                |
+
+```python
+from pyspark.sql import SparkSession, Row
+from pyspark.sql.types import *
+from pyspark.sql.functions import col
+
+# --------------------------------------------------------
+# 1️⃣ Create SparkSession
+# --------------------------------------------------------
+spark = SparkSession.builder.appName("Select_vs_SelectExpr_vs_withColumn").getOrCreate()
+
+# --------------------------------------------------------
+# 2️⃣ Create sample dataset
+# --------------------------------------------------------
+dataset1 = [
+    Row("James", 34, "2006-01-01", "true", "M", 3000.60),
+    Row("Michael", 33, "1980-01-10", "true", "F", 3300.80),
+    Row("Robert", 37, "1992-06-01", "false", "M", 5000.50)
+]
+
+simpleSchema = StructType([
+    StructField("firstName", StringType(), True),
+    StructField("age", IntegerType(), True),
+    StructField("jobStartDate", StringType(), True),
+    StructField("isGraduated", StringType(), True),
+    StructField("gender", StringType(), True),
+    StructField("salary", DoubleType(), True)
+])
+
+df = spark.createDataFrame(dataset1, simpleSchema)
+print("=== Original DataFrame ===")
+df.printSchema()
+df.show(truncate=False)
+
+# --------------------------------------------------------
+# 3️⃣ withColumn(): Add / Modify Columns using DF API
+# --------------------------------------------------------
+df_withcolumn = (
+    df.withColumn("age1", col("age").cast(StringType()))
+      .withColumn("isGraduated", col("isGraduated").cast(BooleanType()))
+      .withColumn("jobStartDate", col("jobStartDate").cast(DateType()))
+)
+print("=== Using withColumn() ===")
+df_withcolumn.printSchema()
+df_withcolumn.show(truncate=False)
+
+# --------------------------------------------------------
+# 4️⃣ select(): Select or rename columns
+# --------------------------------------------------------
+df_select = df_withcolumn.select("firstName", "age", "salary")
+print("=== Using select() (select few columns) ===")
+df_select.printSchema()
+df_select.show(truncate=False)
+
+# You can also use expressions with select()
+df_select_expr = df_withcolumn.select(
+    col("firstName"),
+    (col("salary") * 1.1).alias("increased_salary")
+)
+print("=== Using select() with column expressions ===")
+df_select_expr.printSchema()
+df_select_expr.show(truncate=False)
+
+# --------------------------------------------------------
+# 5️⃣ selectExpr(): Apply SQL expressions directly on columns
+# --------------------------------------------------------
+df_selectexpr = df_withcolumn.selectExpr(
+    "cast(age as int) as age",
+    "cast(isGraduated as string) as isGraduated",
+    "cast(jobStartDate as string) as jobStartDate",
+    "salary * 1.15 as bonus_salary",
+    "concat(firstName, '-', gender) as fullId"
+)
+print("=== Using selectExpr() ===")
+df_selectexpr.printSchema()
+df_selectexpr.show(truncate=False)
+
+# --------------------------------------------------------
+# 6️⃣ SQL SELECT: Use full SQL syntax
+# --------------------------------------------------------
+df_withcolumn.createOrReplaceTempView("CastExample")
+
+df_sql = spark.sql("""
+    SELECT 
+        firstName,
+        STRING(age) AS age,
+        BOOLEAN(isGraduated) AS isGraduated,
+        DATE(jobStartDate) AS jobStartDate,
+        salary,
+        year(jobStartDate) AS joining_year,
+        jobStartDate + INTERVAL 2 hours AS added_hours
+    FROM CastExample
+""")
+print("=== Using spark.sql() ===")
+df_sql.printSchema()
+df_sql.show(truncate=False)
+
+# --------------------------------------------------------
+# 7️⃣ Comparison Summary
+# --------------------------------------------------------
+print("""
+🧾 Summary:
+- withColumn(): Add or modify column using DataFrame API.
+- select(): Choose specific columns or simple expressions.
+- selectExpr(): Apply SQL expressions inline on DataFrame.
+- SQL SELECT: Full SQL capabilities (functions, intervals, joins, etc.)
+""")
+
+spark.stop()
+
+```
+---
 
 ## 12. Schema & Cast Examples
 
