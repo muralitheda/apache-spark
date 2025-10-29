@@ -1392,6 +1392,45 @@ print("✅ Accumulator Value:", acc.value)
 Final Result: [Row(id=3, category='C', value=30, updated_value='30'), Row(id=4, category='D', value=40, updated_value='40'), Row(id=5, category='E', value=50, updated_value='50')]
 Accumulator Value: 3
 ```
+---
+
+
+## What happens when cached data doesn’t fit entirely into executor memory in Spark?
+
+### 🧠 **Short Answer:**
+
+If the data doesn’t fully fit in memory, **only some partitions get cached**.
+The remaining partitions are **not cached** and will be **recomputed(using RDD lineage) on demand** when accessed again.
+Even cached data can be **evicted** if new data needs memory space — so caching acts as a *hint*, not a strict guarantee.
+
+### ⚙️ **Detailed Behavior**
+
+| **Scenario**                                 | **What Happens**                                   | **Result**                              |
+| -------------------------------------------- | -------------------------------------------------- | --------------------------------------- |
+| Data < Executor Memory                       | Entire RDD/DataFrame cached in memory              | Fast re-use from memory                 |
+| Data > Executor Memory                       | Only part of RDD cached; rest recomputed on access | Partial recomputation overhead          |
+| New data cached later                        | Older cached blocks evicted (LRU policy)           | Eviction of least-used data             |
+| Cache + Disk persistence (`MEMORY_AND_DISK`) | Overflow data written to disk                      | Prevents recomputation cost             |
+| Cache + Serialization (`MEMORY_ONLY_SER`)    | Data stored in serialized form to save memory      | Reduced memory footprint, slower access |
+
+### 🧩 Example
+
+```python
+# MEMORY_ONLY -> If data doesn't fit, uncached partitions recomputed
+df.persist(StorageLevel.MEMORY_ONLY)
+
+# MEMORY_AND_DISK -> If data doesn't fit, spills to disk
+df.persist(StorageLevel.MEMORY_AND_DISK)
+```
+
+### ✅ **Key Takeaway**
+
+Caching in Spark is **best-effort**, not guaranteed.
+If memory is insufficient, Spark:
+
+1. Keeps what it can.
+2. Recomputes missing partitions.
+3. May evict old cache blocks as needed.
 
 ---
 ## 12. Schema & Cast Examples
