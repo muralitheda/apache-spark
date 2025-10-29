@@ -1236,6 +1236,94 @@ Even though the source won’t fix it, maintain:
 | Unmatched foreign key    | Join failure           | Move to quarantine table      |
 
 ---
+
+## How can you change the number of partitions and cache/persist a DataFrame in PySpark?  Also, how do you check its storage level and partition count?
+
+### ⚙️ **PySpark — Partitions, Cache & Storage Levels (Quick Reference)**
+
+| **Command**                 | **Purpose**                      | **Shuffle** | **Example**                            |
+| --------------------------- | -------------------------------- | ----------- | -------------------------------------- |
+| `df.repartition(n)`         | Increase or rebalance partitions | ✅           | `df = df.repartition(6)`               |
+| `df.coalesce(n)`            | Reduce partitions (efficient)    | ❌           | `df = df.coalesce(3)`                  |
+| `df.rdd.getNumPartitions()` | Get partition count              | ❌           | `df.rdd.getNumPartitions()`            |
+| `df.cache()`                | Cache in memory + disk (default) | ❌           | `df.cache()`                           |
+| `df.persist(level)`         | Custom cache level               | ❌           | `df.persist(StorageLevel.MEMORY_ONLY)` |
+| `df.unpersist()`            | Remove cache                     | ❌           | `df.unpersist()`                       |
+| `df.rdd.getStorageLevel()`  | Show cache level                 | ❌           | `df.rdd.getStorageLevel()`             |
+
+
+### 💾 **Storage Levels**
+
+```
+StorageLevel(useDisk, useMemory, useOffHeap, deserialized, replication)
+```
+| **Output**                       | **Equivalent Constant** | **Meaning**                  |
+| -------------------------------- | ----------------------- | ---------------------------- |
+| `(True, True, False, False, 1)`  | `MEMORY_AND_DISK_SER`   | Serialized, in memory + disk |
+| `(False, True, False, False, 1)` | `MEMORY_ONLY_SER`       | Serialized, memory only      |
+| `(False, True, False, True, 1)`  | `MEMORY_ONLY`           | Deserialized, memory only    |
+| `(True, False, False, False, 1)` | `DISK_ONLY`             | Stored on disk only          |
+
+
+### ✅ ** Example**
+
+```python
+ffrom pyspark.sql import SparkSession
+from pyspark import StorageLevel
+
+spark = SparkSession.builder.getOrCreate()
+
+# Load data
+df = spark.read.csv("hdfs:///home/hduser/custs", header=False, inferSchema=True)
+
+# Check initial partitions
+print("Initial partitions:", df.rdd.getNumPartitions())
+
+# Increase partitions (with shuffle)
+df = df.repartition(6)
+print("After repartition:", df.rdd.getNumPartitions())
+
+# Decrease partitions (without shuffle)
+df = df.coalesce(3)
+print("After coalesce:", df.rdd.getNumPartitions())
+
+# Cache or persist
+df.cache()   # same as persist(StorageLevel.MEMORY_AND_DISK)
+df.count()   # triggers cache
+
+# Check cache info
+print("Is Cached?:", df.is_cached)
+print("[Storage Level]")
+level = df.rdd.getStorageLevel()
+print(" useDisk:", level.useDisk)
+print(" useMemory:", level.useMemory)
+print(" useOffHeap:", level.useOffHeap)
+print(" deserialized:", level.deserialized)
+print(" replication:", level.replication)
+
+# Custom persist example
+df.unpersist()
+df.persist(StorageLevel.MEMORY_ONLY)
+print("[Updated Storage Level]")
+level = df.rdd.getStorageLevel()
+print(" useDisk:", level.useDisk)
+print(" useMemory:", level.useMemory)
+print(" useOffHeap:", level.useOffHeap)
+print(" deserialized:", level.deserialized)
+print(" replication:", level.replication)
+```
+
+```pqsql
+Initial partitions: 2
+After repartition: 6
+After coalesce: 3
+Is Cached?: True
+Storage Level: StorageLevel(True, True, False, False, 1)
+Updated Storage Level: StorageLevel(False, True, False, False, 1)
+
+```
+
+---
 ## 12. Schema & Cast Examples
 
 ```python
