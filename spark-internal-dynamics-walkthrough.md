@@ -1326,7 +1326,7 @@ Updated Storage Level: StorageLevel(False, True, False, False, 1)
 
 ## How is a Spark application's code distributed and executed across the Driver and Executor nodes?
 
-### 🗺️Spark Code Execution Location
+### Spark Code Execution Location
 
 | Location | Primary Responsibility | Key Operations |
 | :--- | :--- | :--- |
