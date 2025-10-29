@@ -1322,6 +1322,76 @@ Storage Level: StorageLevel(True, True, False, False, 1)
 Updated Storage Level: StorageLevel(False, True, False, False, 1)
 
 ```
+---
+
+## How is a Spark application's code distributed and executed across the Driver and Executor nodes?
+
+### 🗺️Spark Code Execution Location
+
+| Location | Primary Responsibility | Key Operations |
+| :--- | :--- | :--- |
+| **Driver Node** | **Coordination & Planning** | * **`main()`** method, **`SparkSession`/`SparkContext`** creation. |
+| | | * **`DAGScheduler`** and **`TaskScheduler`** (Job/Stage planning). |
+| | | * Defining RDD lineage/definitions. |
+| | | * **Consolidation Actions:** **`collect()`**, **`take()`**, final **`count()`** aggregation. |
+| **Executor Node** | **Data Processing & Execution** | * Running assigned **Tasks**. |
+| | | * **Transformations:** **`map`**, **`filter`**, **`join`**, **`groupBy`**, etc. |
+| | | * Storing and using **broadcasted data**. |
+| | | * Writing results to storage or sending intermediate results to the Driver. |
+| **Driver & Executor** | **Interaction & Shared State** | * **`count()`:** Executors do local counts, Driver sums them. |
+| | | * **`accumulator()`:** Driver initializes, Executors update. |
+| | | * **`broadcast()`:** Driver sends the data, Executors cache and use it. |
+
+### Example
+```python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, lit, udf
+
+# ---- DRIVER ----
+spark = SparkSession.builder.appName("DriverExecutorDFExample").getOrCreate()
+sc = spark.sparkContext
+
+# Create sample DataFrame
+data = [(1, "A"), (2, "B"), (3, "C"), (4, "D"), (5, "E")]
+df = spark.createDataFrame(data, ["id", "category"])
+
+# Create broadcast variable (created in DRIVER → used in EXECUTOR)
+multiplier = sc.broadcast(10)
+
+# Create accumulator (created in DRIVER → updated in EXECUTOR)
+acc = sc.accumulator(0)
+
+# ---- EXECUTOR ----
+# Define transformation using DataFrame DSL
+# Transformations like withColumn, filter run on executors
+df_transformed = (
+    df.withColumn("value", col("id") * lit(multiplier.value))
+      .filter(col("value") > 20)
+)
+
+# Accumulator update using UDF (executed in EXECUTOR)
+def update_acc(x):
+    acc.add(1)
+    return x
+
+update_acc_udf = udf(update_acc)
+
+df_final = df_transformed.withColumn("updated_value", update_acc_udf(col("value")))
+
+# ---- DRIVER + EXECUTOR ----
+# Action (collect) triggers computation:
+result = df_final.collect()  # Executors execute; Driver gathers result
+
+# ---- DRIVER ----
+print("✅ Final Result:", result)
+print("✅ Accumulator Value:", acc.value)
+
+```
+
+```
+Final Result: [Row(id=3, category='C', value=30, updated_value='30'), Row(id=4, category='D', value=40, updated_value='40'), Row(id=5, category='E', value=50, updated_value='50')]
+Accumulator Value: 3
+```
 
 ---
 ## 12. Schema & Cast Examples
