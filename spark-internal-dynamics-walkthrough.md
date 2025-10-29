@@ -1162,6 +1162,101 @@ If the source system cannot fix the data, we handle it **gracefully within our p
 
 ---
 
+## You are working on a data pipeline that loads data from multiple source systems into BigQuery.  During the load, you observe frequent data quality issues — for example, missing account numbers, invalid date formats, and null numeric fields.  The source system owners are not willing to fix these issues at the source. How would you design your ETL pipeline to handle these issues gracefully without blocking the load into BigQuery?
+
+### 🧩 1. Identify and Classify Data Issues
+
+First, categorize the types of issues:
+
+| Type                     | Example                           | Typical Impact  | Possible Fix            |
+| ------------------------ | --------------------------------- | --------------- | ----------------------- |
+| Missing mandatory fields | `account_number` is null          | Record rejected | Derive or default       |
+| Invalid format           | `date` = "32-13-2024"             | Parsing fails   | Clean/normalize         |
+| Duplicates               | Repeated transaction IDs          | Double-counting | Deduplicate             |
+| Referential integrity    | `customer_id` not in master table | Join fails      | Soft skip or flag       |
+| Schema drift             | New columns added/removed         | Schema mismatch | Dynamic schema handling |
+
+---
+
+### ⚙️ 2. Apply Code-Level Patches (Data Cleaning Layer)
+
+Create a **data pre-processing layer** before loading into BigQuery (BQ).
+Examples (in PySpark or SQL transformations):
+
+#### a. Handle Missing Fields
+
+```python
+df = df.withColumn(
+    "account_number",
+    F.when(F.col("account_number").isNull(),
+           F.concat_ws("_", F.col("phone_number"), F.col("dob")))
+     .otherwise(F.col("account_number"))
+)
+```
+
+#### b. Handle Invalid Dates
+
+```python
+df = df.withColumn(
+    "txn_date",
+    F.when(F.col("txn_date").rlike("^\d{4}-\d{2}-\d{2}$"), F.col("txn_date"))
+     .otherwise(F.lit(None))
+)
+```
+
+#### c. Default or Flag Invalid Data
+
+Add an error flag column instead of dropping the record:
+
+```python
+df = df.withColumn(
+    "error_flag",
+    F.when(F.col("account_number").isNull(), "MISSING_ACC_NO")
+     .otherwise("VALID")
+)
+```
+
+### 🧰 3. Implement a Quarantine or Error Table
+
+Send bad or unverifiable data to a separate **BQ table** (e.g., `error_records`) for audit and later correction.
+
+```sql
+INSERT INTO bq_dataset.error_records
+SELECT * FROM staging_table WHERE error_flag != 'VALID';
+```
+
+Then, only valid data moves to the final table:
+
+```sql
+INSERT INTO bq_dataset.main_table
+SELECT * FROM staging_table WHERE error_flag = 'VALID';
+```
+
+### 🧠 4. Use Data Quality Rules (DQ Layer)
+
+Add automated checks using tools or scripts:
+
+* **Great Expectations**, **Deequ**, or **custom PySpark checks**
+* Example: Validate all numeric fields or enforce date ranges
+
+### 🧾 5. Communicate Upstream and Document Workarounds
+
+Even though the source won’t fix it, maintain:
+
+* A **data issue log** (timestamp, issue type, workaround applied)
+* **Versioned patch scripts** for traceability
+* Regular feedback loops to revisit root causes later
+
+### ✅ Example Summary
+
+| Problem                  | Impact                 | Mitigation                    |
+| ------------------------ | ---------------------- | ----------------------------- |
+| Missing `account_number` | Rejects during BQ load | Derive using phone + DOB      |
+| Invalid date format      | Parse errors           | Normalize date or set to null |
+| Null numeric fields      | Aggregation errors     | Replace with 0 or flag        |
+| Unmatched foreign key    | Join failure           | Move to quarantine table      |
+
+---
 ## 12. Schema & Cast Examples
 
 ```python
