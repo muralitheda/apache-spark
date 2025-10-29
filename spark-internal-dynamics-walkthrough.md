@@ -1628,10 +1628,10 @@ spark.stop()
 ## 3.Schema Evolution using unionByName() in PySpark?
 
 🎯 Scenario
-You have employee data coming monthly —
-Jan data (old schema) → no salary column
-Feb data (new schema) → added salary column
-We need to combine both datasets safely even though their schemas differ.
+You have employee data coming monthly —  
+Jan data (old schema) → no salary column  
+Feb data (new schema) → added salary column  
+We need to combine both datasets safely even though their schemas differ.  
 
 ```python
 from pyspark.sql import SparkSession
