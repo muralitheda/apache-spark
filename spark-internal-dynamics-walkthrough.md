@@ -1613,6 +1613,18 @@ spark.stop()
 ```
 ---
 
+## 2. How to print Schema, Column Names, and Data Types in Spark?
+
+| Task                     | Command                                  |
+| ------------------------ | ---------------------------------------- |
+| Print schema             | `df3.printSchema()`                      |
+| Get column names         | `df3.columns`                            |
+| Get number of columns    | `len(df3.columns)`                       |
+| Get datatypes            | `df3.dtypes`                             |
+| Describe temp view       | `spark.sql("DESCRIBE view_name").show()` |
+
+---
+
 ## 12. Schema & Cast Examples
 
 ```python
