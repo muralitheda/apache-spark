@@ -1504,7 +1504,7 @@ Spark can throw an **OutOfMemoryError** when the allocated **JVM heap space** (e
 ```python
 from pyspark.sql import SparkSession, Row
 from pyspark.sql.types import *
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col,lit
 
 # --------------------------------------------------------
 # 1️⃣ Create SparkSession
@@ -1541,6 +1541,7 @@ df_withcolumn = (
     df.withColumn("age1", col("age").cast(StringType()))
       .withColumn("isGraduated", col("isGraduated").cast(BooleanType()))
       .withColumn("jobStartDate", col("jobStartDate").cast(DateType()))
+      .withColumn("deptid", lit(0).cast(IntegerType()))
 )
 print("=== Using withColumn() ===")
 df_withcolumn.printSchema()
