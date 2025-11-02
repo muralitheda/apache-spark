@@ -1552,7 +1552,7 @@ df_withcolumn.show(truncate=False)
 # --------------------------------------------------------
 df_select = df_withcolumn.select("firstName", "age", "salary")
 print("=== Using select() (select few columns) ===")
-df_select.printSchema()
+df_select.printSchema()   
 df_select.show(truncate=False)
 
 # You can also use expressions with select()
