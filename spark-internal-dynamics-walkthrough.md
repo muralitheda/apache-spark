@@ -1673,6 +1673,48 @@ df_parquet.printSchema()
 df_parquet.show()
 
 ```
+---
+# Resilient Distributed Datasets (RDDs):
+  1. Concept: The original low-level abstraction in Spark. Understand it conceptually, though you'll primarily use Dataframes.
+  2. Chracteristics: Immutable, distributed collection of objects, fault-tolerant.
+  3. Transformations (Lazy): map(), filter(), flatMap(), distinct(), union().
+  4. Actions (Trigger computation): collect(), count(), take(), first(), reduce(), saveAsTextFile().
+  5. Lazy Evaluation: Understand why transformations aren't executed until an action is called.
+  6. Key-Value Pair RDDs: Operations like reduceByKey(), groupByKey(), sortByKey(), join(), aggregateByKey().
+---
+
+## 4. Difference between Map vs FlatMap in Spark
+
+| Aspect                  | map(func)                                                                            | flatMap(func)                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| Definition              | Returns a new distributed dataset formed by passing each element through a function. | Similar to map, but each input can produce 0 or more output elements (function returns a collection). |
+| Nature                  | One-to-one (Passive)                                                                 | One-to-many (Active)                                                                                  |
+| Transformation Function | One element in → One element out                                                     | One element in → 0 or more elements out                                                               |
+| Use Case                | Apply or validate fields like a SELECT statement (e.g., check field count).          | Used in frustration scoring or intent identification; explode or pivot data like SQL EXPLODE.         |
+
+**Example:**
+
+```python
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName("MapVsFlatMap").getOrCreate()
+rdd = spark.sparkContext.parallelize(["a b", "c d"])
+
+# Using map(): keeps the structure (one input → one output list).
+print(rdd.map(lambda x: x.split(" ")).collect())
+# Output: [['a', 'b'], ['c', 'd']]
+
+# Using flatMap(): flattens nested results (one input → multiple outputs).
+print(rdd.flatMap(lambda x: x.split(" ")).collect())
+# Output: ['a', 'b', 'c', 'd']
+```
+---
+
+## 5. Difference between reduceByKey(), aggregateByKey() and groupByKey()
+
+
+
+
+
 
 ## 12. Schema & Cast Examples
 
