@@ -1908,6 +1908,22 @@ print(spark.sparkContext.getConf().getAll())
 """
 ```
 
+## 9. What is the default level of parallelism in Spark?
+
+The **default level of parallelism** in Spark is determined by the **number of partitions** created when reading data or by Spark’s internal settings when not explicitly defined by the user.
+
+| **Basis**                               | **Explanation**                                                                                                             |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **HDFS / File-based Input**             | Equal to the **number of HDFS blocks**, typically with a **default block size of 128 MB**.                                  |
+| **RDD Operations (like `parallelize`)** | Determined by the **`spark.default.parallelism`** configuration property.                                                   |
+| **Default Behavior**                    | If not specified, Spark uses **the number of available CPU cores on the cluster** (i.e., total cores across all executors). |
+
+
+✅ **Summary:**
+**Default parallelism = number of partitions (based on 128 MB block size or CPU cores)**
+→ Controlled by **`spark.default.parallelism`** when not explicitly set.
+
+---
 
 ## 12. Schema & Cast Examples
 
