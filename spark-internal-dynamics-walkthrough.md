@@ -1778,7 +1778,6 @@ Simply groups all values per key — no computation yet.
 
 ---
 
-
 ## 6. Converting Existing RDDs to Spark DataFrame
 
 | **Method**                       | **Description**                                                                                              |
@@ -1840,8 +1839,72 @@ DataFrame using createDataFrame():
 * `toDF()` → Simple and direct (good for small or tuple-based RDDs).
 * `createDataFrame()` → More control, supports schema definition and Row objects.
 
+---
+
+## 7. Which all kinds of data processing are supported by Spark?
+
+| **Type**                   | **Description**                                                    | **Example / Tool**                                                     |
+| -------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| **Batch Processing**       | Processes large volumes of static data in batches.                 | ETL jobs, data transformations using **Spark Core** or **Spark SQL**   |
+| **Interactive Processing** | Allows users to query and analyze data interactively in real time. | **Spark Shell**, **Spark SQL**, **Zeppelin**, **Databricks Notebooks** |
+| **Stream Processing**      | Handles continuous data streams in near real time.                 | **Spark Streaming**, **Structured Streaming**                          |
 
 ---
+
+## 8. Which all are the ways to configure Spark properties and order them from least priority to most priority?
+
+| **Priority Level**       | **Configuration Method**                              | **Description / Usage**                                                                     |
+| ------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| **3️⃣ Least Priority**   | **`conf/spark-defaults.conf`**                        | Default configuration file; applies to all Spark applications unless overridden.            |
+| **2️⃣ Medium Priority**  | **`--conf` (command-line option)**                    | Used with `spark-submit` or `spark-shell` to override defaults for a specific job.          |
+| **1️⃣ Highest Priority** | **`SparkConf` (inside code or SparkSession builder)** | Programmatically set Spark properties inside the application; overrides all other settings. |
+
+```bash
+## spark-defaults.conf
+spark.executor.memory    2g
+spark.executor.cores     2
+```
+
+```bash
+spark-submit \
+  --conf spark.executor.memory=4g \
+  --conf spark.executor.cores=3 \
+  my_app.py
+
+```
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .appName("PriorityExample") \
+    .config("spark.executor.memory", "6g") \
+    .config("spark.executor.cores", "4") \
+    .getOrCreate()
+
+print(spark.sparkContext.getConf().getAll())
+
+"""
+[‘spark.app.name’, ‘PriorityExample’]
+[‘spark.driver.extraJavaOptions’, ‘-Djava.net.preferIPv6Addresses=false -XX:+IgnoreUnrecognizedVMOptions —add-opens=java.base/java.lang=ALL-UNNAMED —add-opens=java.base/java.lang.invoke=ALL-UNNAMED —add-opens=java.base/java.lang.reflect=ALL-UNNAMED —add-opens=java.base/java.io=ALL-UNNAMED —add-opens=java.base/java.net=ALL-UNNAMED —add-opens=java.base/java.nio=ALL-UNNAMED —add-opens=java.base/java.util=ALL-UNNAMED —add-opens=java.base/java.util.concurrent=ALL-UNNAMED —add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED —add-opens=java.base/jdk.internal.ref=ALL-UNNAMED —add-opens=java.base/sun.nio.ch=ALL-UNNAMED —add-opens=java.base/sun.nio.cs=ALL-UNNAMED —add-opens=java.base/sun.security.action=ALL-UNNAMED —add-opens=java.base/sun.util.calendar=ALL-UNNAMED —add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED -Djdk.reflect.useDirectMethodHandle=false’]
+[‘spark.executor.id’, ‘driver’]
+[‘spark.driver.port’, ‘36223’]
+[‘spark.app.submitTime’, ‘1762178769811’]
+[‘spark.executor.cores’, ‘4’]
+[‘spark.executor.memory’, ‘6g’]
+[‘spark.app.id’, ‘local-1762178770274’]
+[‘spark.app.startTime’, ‘1762178769890’]
+[‘spark.rdd.compress’, ‘True’]
+[‘spark.executor.extraJavaOptions’, ‘-Djava.net.preferIPv6Addresses=false -XX:+IgnoreUnrecognizedVMOptions —add-opens=java.base/java.lang=ALL-UNNAMED —add-opens=java.base/java.lang.invoke=ALL-UNNAMED —add-opens=java.base/java.lang.reflect=ALL-UNNAMED —add-opens=java.base/java.io=ALL-UNNAMED —add-opens=java.base/java.net=ALL-UNNAMED —add-opens=java.base/java.nio=ALL-UNNAMED —add-opens=java.base/java.util=ALL-UNNAMED —add-opens=java.base/java.util.concurrent=ALL-UNNAMED —add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED —add-opens=java.base/jdk.internal.ref=ALL-UNNAMED —add-opens=java.base/sun.nio.ch=ALL-UNNAMED —add-opens=java.base/sun.nio.cs=ALL-UNNAMED —add-opens=java.base/sun.security.action=ALL-UNNAMED —add-opens=java.base/sun.util.calendar=ALL-UNNAMED —add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED -Djdk.reflect.useDirectMethodHandle=false’]
+[‘spark.driver.host’, ‘192.168.189.001’]
+[‘spark.serializer.objectStreamReset’, ‘100’]
+[‘spark.master’, ‘local[*]’]
+[‘spark.submit.pyFiles’, ‘’]
+[‘spark.submit.deployMode’, ‘client’]
+[‘spark.ui.showConsoleProgress’, ‘true’]
+"""
+```
+
 
 ## 12. Schema & Cast Examples
 
