@@ -1677,10 +1677,10 @@ df_parquet.show()
 # Resilient Distributed Datasets (RDDs):
   1. Concept: The original low-level abstraction in Spark. Understand it conceptually, though you'll primarily use Dataframes.
   2. Chracteristics: Immutable, distributed collection of objects, fault-tolerant.
-  3. Transformations (Lazy): map(), filter(), flatMap(), distinct(), union().
-  4. Actions (Trigger computation): collect(), count(), take(), first(), reduce(), saveAsTextFile().
+  3. Transformations (Lazy): `map(), filter(), flatMap(), distinct(), union()`.
+  4. Actions (Trigger computation): `collect(), count(), take(), first(), reduce(), saveAsTextFile()`.
   5. Lazy Evaluation: Understand why transformations aren't executed until an action is called.
-  6. Key-Value Pair RDDs: Operations like reduceByKey(), groupByKey(), sortByKey(), join(), aggregateByKey().
+  6. Key-Value Pair RDDs: Operations like `reduceByKey(), groupByKey(), sortByKey(), join(), aggregateByKey()`.
 ---
 
 ## 4. Difference between Map vs FlatMap in Spark
