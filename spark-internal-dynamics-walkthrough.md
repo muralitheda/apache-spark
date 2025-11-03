@@ -2055,7 +2055,7 @@ spark = SparkSession.builder.appName("TempViewExample").getOrCreate()
 df = spark.read.option("header", "false") \
                .option("delimiter", ",") \
                .option("inferschema", "true") \
-               .csv("gs://source1-weblog-bucket-we45/dataset/custs") \
+               .csv("hdfs:///home/hduser/custs") \
                .toDF("custno", "firstname", "lastname", "age", "profession")
 
 # -------------------------
