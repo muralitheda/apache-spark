@@ -1712,9 +1712,71 @@ print(rdd.flatMap(lambda x: x.split(" ")).collect())
 ## 5. Difference between reduceByKey(), aggregateByKey() and groupByKey()
 
 
+| **Aspect**               | **reduceByKey**                       | **aggregateByKey**                    | **groupByKey**                          |
+| ------------------------ | ------------------------------------- | ------------------------------------- | --------------------------------------- |
+| **Combiner Usage**       | ✅ Uses Combiner                       | ✅ Uses Combiner                       | ❌ Does not use Combiner                 |
+| **Performance**          | High (less shuffle, combines locally) | High (less shuffle, combines locally) | Low (shuffles all data before grouping) |
+| **Input vs Output Type** | Same                                  | Can differ                            | Same                                    |
+| **Operation Type**       | Simple aggregation (sum, max, count)  | Complex aggregation (average, ratio)  | Grouping only                           |
+| **Typical Use Case**     | Find total sales, max value, etc.     | Compute averages or ratios            | Group data like city → list of users    |
+
+### 🔹 Input RDD
+
+```python
+rdd = sc.parallelize([('a', 2), ('b', 3), ('a', 4)])
+```
+
+### 🧩 1. reduceByKey → Combine values directly
+
+```python
+rdd.reduceByKey(lambda x, y: x + y).collect()
+# Output: [('a', 6), ('b', 3)]
+```
+
+**Explanation:**
+`reduceByKey` merges values using the same function (`+`) within and across partitions — total sum per key.
+
+| Key | Values | Result |
+| --- | ------ | ------ |
+| 'a' | [2, 4] | 6      |
+| 'b' | [3]    | 3      |
 
 
+### 🧩 2. aggregateByKey → Flexible aggregation (e.g., average)
 
+```python
+rdd.aggregateByKey((0, 0),
+                   lambda acc, v: (acc[0] + v, acc[1] + 1),   # within partition
+                   lambda acc1, acc2: (acc1[0] + acc2[0], acc1[1] + acc2[1])   # across partitions
+                  ).mapValues(lambda x: x[0] / x[1]).collect()
+# Output: [('a', 3.0), ('b', 3.0)]
+```
+
+**Explanation:**
+Keeps track of both **sum and count** per key → calculates **average**.
+
+| Key | Sum | Count | Avg |
+| --- | --- | ----- | --- |
+| 'a' | 6   | 2     | 3.0 |
+| 'b' | 3   | 1     | 3.0 |
+
+
+### 🧩 3. groupByKey → Groups values into a list
+
+```python
+rdd.groupByKey().mapValues(list).collect()
+# Output: [('a', [2, 4]), ('b', [3])]
+```
+
+**Explanation:**
+Simply groups all values per key — no computation yet.
+
+| Key | Values |
+| --- | ------ |
+| 'a' | [2, 4] |
+| 'b' | [3]    |
+
+---
 
 ## 12. Schema & Cast Examples
 
