@@ -2022,7 +2022,7 @@ spark2 = SparkSession.builder \
 print("New session started with modified configuration")
 ```
 
-### 💡 **Typical Use Cases**
+### 🎯 **Typical Use Cases**
 
 | **Scenario**                                                                 | **Reason to Create a New Session / Context**                                        | **Example**                                                                            |
 | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
