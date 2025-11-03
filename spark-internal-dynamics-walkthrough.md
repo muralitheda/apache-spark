@@ -1720,13 +1720,13 @@ print(rdd.flatMap(lambda x: x.split(" ")).collect())
 | **Operation Type**       | Simple aggregation (sum, max, count)  | Complex aggregation (average, ratio)  | Grouping only                           |
 | **Typical Use Case**     | Find total sales, max value, etc.     | Compute averages or ratios            | Group data like city → list of users    |
 
-### 🔹 Input RDD
+### 🎯 Input RDD
 
 ```python
 rdd = sc.parallelize([('a', 2), ('b', 3), ('a', 4)])
 ```
 
-### 🧩 1. reduceByKey → Combine values directly
+### 🎯 1. reduceByKey → Combine values directly
 
 ```python
 rdd.reduceByKey(lambda x, y: x + y).collect()
@@ -1742,7 +1742,7 @@ rdd.reduceByKey(lambda x, y: x + y).collect()
 | 'b' | [3]    | 3      |
 
 
-### 🧩 2. aggregateByKey → Flexible aggregation (e.g., average)
+### 🎯 2. aggregateByKey → Flexible aggregation (e.g., average)
 
 ```python
 rdd.aggregateByKey((0, 0),
@@ -1761,7 +1761,7 @@ Keeps track of both **sum and count** per key → calculates **average**.
 | 'b' | 3   | 1     | 3.0 |
 
 
-### 🧩 3. groupByKey → Groups values into a list
+### 🎯 3. groupByKey → Groups values into a list
 
 ```python
 rdd.groupByKey().mapValues(list).collect()
