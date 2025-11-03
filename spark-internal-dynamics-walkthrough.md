@@ -1778,7 +1778,8 @@ Simply groups all values per key — no computation yet.
 
 ---
 
-## Converting Existing RDDs to Spark DataFrame
+
+## 6. Converting Existing RDDs to Spark DataFrame
 
 | **Method**                       | **Description**                                                                                              |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
