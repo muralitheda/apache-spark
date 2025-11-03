@@ -1919,6 +1919,24 @@ The **default level of parallelism** in Spark is determined by the **number of p
 | **RDD Operations (like `parallelize`)** | Determined by the **`spark.default.parallelism`** configuration property.                                                   |
 | **Default Behavior**                    | If not specified, Spark uses **the number of available CPU cores on the cluster** (i.e., total cores across all executors). |
 
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("CheckDefaultParallelism").getOrCreate()
+sc = spark.sparkContext
+
+# Method 1
+print("Default Parallelism:", sc.defaultParallelism)
+
+# Method 2
+print(spark.sparkContext.getConf().get("spark.default.parallelism"))
+
+# Method 3
+"""
+You can also check it in the Spark Web UI under:
+Environment → Runtime Environment → spark.default.parallelism
+"""
+```
 
 ✅ **Summary:**
 **Default parallelism = number of partitions (based on 128 MB block size or CPU cores)**
