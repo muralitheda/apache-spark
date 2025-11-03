@@ -1997,6 +1997,43 @@ sc2.stop()
 
 ```
 
+## 11. In what situation do we terminate one SparkSession or SparkContext and create a new one within the same program?
+
+We terminate an existing SparkSession or SparkContext and create a new one **when we need to start another session with different configurations** that cannot be modified at runtime (e.g., memory, shuffle partitions, or environment settings).
+
+**Example:**
+
+```python
+from pyspark.sql import SparkSession
+
+# First session
+spark = SparkSession.builder.appName("Session1").getOrCreate()
+print("First session created")
+
+# Stop the first session
+spark.stop()
+
+# Create a new session with different config
+spark2 = SparkSession.builder \
+    .appName("Session2") \
+    .config("spark.sql.shuffle.partitions", "50") \
+    .getOrCreate()
+
+print("New session started with modified configuration")
+```
+
+### 💡 **Typical Use Cases**
+
+| **Scenario**                                                                 | **Reason to Create a New Session / Context**                                        | **Example**                                                                            |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 🔧 **Change in Spark configuration** (e.g., memory size, shuffle partitions) | Spark configs are **immutable** after startup — new settings require a new session. | Changing `"spark.sql.shuffle.partitions"` from `200` to `50` for a smaller dataset.    |
+| 🌐 **Switching between environments** (e.g., Dev → QA → Prod)                | Each environment may need **different cluster or database connections.**            | Switching Spark’s Hive warehouse from `/user/dev_warehouse` to `/user/prod_warehouse`. |
+| 🧩 **Running independent workloads** in the same application                 | To **isolate configs, temporary views, or catalogs** across jobs.                   | Running one Spark job on CSV data and another on a JDBC source independently.          |
+
+\
+> 💡 **Note:** Only one active SparkContext is allowed per JVM, so always stop the previous one before creating another.
+
+
 > 💡 In YARN cluster mode, the **Driver JVM runs inside the ApplicationMaster JVM**;
 > in client mode, the **Driver runs outside** the AM on the submitting machine.
 
