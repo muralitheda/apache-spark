@@ -1944,6 +1944,63 @@ Environment → Runtime Environment → spark.default.parallelism
 
 ---
 
+## 10. Is it possible to have multiple SparkContext in a single JVM?
+
+No, by default Spark **does not allow multiple SparkContexts in a single JVM**.
+Only **one SparkContext** can run per **Driver JVM** because it manages all cluster communication and resources.
+
+If you try to create another, Spark throws:
+
+```
+org.apache.spark.SparkException: Only one SparkContext may be running in this JVM
+```
+
+```python
+from pyspark import SparkContext
+
+# First SparkContext
+sc1 = SparkContext(appName="App1")
+
+# Attempt to create second SparkContext
+sc2 = SparkContext(appName="App2")
+
+```
+
+You can override this (not recommended) by setting:
+
+```
+spark.driver.allowMultipleContexts = true
+```
+
+```python
+from pyspark import SparkConf, SparkContext
+
+# Enable multiple SparkContexts
+conf = SparkConf() \
+    .setAppName("MultipleContextsExample") \
+    .setMaster("local") \
+    .set("spark.driver.allowMultipleContexts", "true")
+
+# First SparkContext
+sc1 = SparkContext(conf=conf)
+print("First SparkContext created:", sc1.appName)
+
+# Stop the first context (recommended before creating another)
+sc1.stop()
+
+# Second SparkContext
+sc2 = SparkContext(conf=conf)
+print("Second SparkContext created:", sc2.appName)
+
+sc2.stop()
+
+
+```
+
+> 💡 In YARN cluster mode, the **Driver JVM runs inside the ApplicationMaster JVM**;
+> in client mode, the **Driver runs outside** the AM on the submitting machine.
+
+
 ## 12. Schema & Cast Examples
 
 ```python
