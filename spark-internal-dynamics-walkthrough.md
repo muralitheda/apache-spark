@@ -2021,6 +2021,7 @@ spark2 = SparkSession.builder \
 
 print("New session started with modified configuration")
 ```
+> 💡 **Note:** Only one active SparkContext is allowed per JVM, so always stop the previous one before creating another.
 
 ### 🎯 **Typical Use Cases**
 
@@ -2030,14 +2031,67 @@ print("New session started with modified configuration")
 | 🌐 **Switching between environments** (e.g., Dev → QA → Prod)                | Each environment may need **different cluster or database connections.**            | Switching Spark’s Hive warehouse from `/user/dev_warehouse` to `/user/prod_warehouse`. |
 | 🧩 **Running independent workloads** in the same application                 | To **isolate configs, temporary views, or catalogs** across jobs.                   | Running one Spark job on CSV data and another on a JDBC source independently.          |
 
-\
-> 💡 **Note:** Only one active SparkContext is allowed per JVM, so always stop the previous one before creating another.
+---
+
+## 12. Can we share a DataFrame across multiple Spark sessions within a single application?  Can we share it across different Spark applications?  Or what is the difference between **Temp View** and **Global Temp View** in Spark (v2.3+)?
+
+| **Aspect**    | **Temp View**                                         | **Global Temp View**                                                                    | **Across Applications**                                     |
+| ------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Scope**     | Accessible **only within the same SparkSession**.     | Accessible **across multiple SparkSessions** but **within the same Spark Application**. | ❌ Not possible directly.                                    |
+| **Lifetime**  | Exists until the **SparkSession is terminated**.      | Exists until the **Spark Application ends**.                                            | Data must be persisted externally.                          |
+| **Namespace** | Uses the current database context (no prefix needed). | Stored under the **system database `global_temp`**.                                     | Not applicable.                                             |
+| **Use Case**  | Temporary queries inside one session.                 | Share data across sessions in same application.                                         | Share data between jobs by saving it (e.g., Parquet, Hive). |
 
 
-> 💡 In YARN cluster mode, the **Driver JVM runs inside the ApplicationMaster JVM**;
-> in client mode, the **Driver runs outside** the AM on the submitting machine.
+### **Example**
+
+```python
+from pyspark.sql import SparkSession
+
+# Create a Spark session
+spark = SparkSession.builder.appName("TempViewExample").getOrCreate()
+
+# Read DataFrame
+df = spark.read.option("header", "false") \
+               .option("delimiter", ",") \
+               .option("inferschema", "true") \
+               .csv("gs://source1-weblog-bucket-we45/dataset/custs") \
+               .toDF("custno", "firstname", "lastname", "age", "profession")
+
+# -------------------------
+# 1️⃣ Create a Session-level TEMP VIEW
+# -------------------------
+df.createOrReplaceTempView("view_temp")
+
+print("\nSession-level Temp View (accessible only in same session):")
+spark.sql("SELECT * FROM view_temp LIMIT 5").show()
+
+# -------------------------
+# 2️⃣ Create a GLOBAL TEMP VIEW
+# -------------------------
+df.createOrReplaceGlobalTempView("view_global")
+
+print("\nGlobal Temp View (accessible across sessions in same app):")
+spark.sql("SELECT * FROM global_temp.view_global LIMIT 5").show()
+
+# -------------------------
+# 3️⃣ Access Global Temp View from a NEW SESSION
+# -------------------------
+new_spark = spark.newSession()
+print("\nAccessing Global Temp View from new session:")
+new_spark.sql("SELECT * FROM global_temp.view_global LIMIT 5").show()
+```
+
+### 💡 **Summary**
+
+| **Type**                | **Accessible In**              | **Lifetime**                    | **Access Syntax**                           |
+| ----------------------- | ------------------------------ | ------------------------------- | ------------------------------------------- |
+| **Temp View**           | Same SparkSession              | Until session ends              | `SELECT * FROM view_temp`                   |
+| **Global Temp View**    | All sessions in same Spark app | Until app ends                  | `SELECT * FROM global_temp.view_global`     |
+| **Across Applications** | ❌ Not supported directly       | Until external storage deletion | Use saved data (e.g., Parquet, Hive, NoSQL) |
 
 
+---
 ## 12. Schema & Cast Examples
 
 ```python
