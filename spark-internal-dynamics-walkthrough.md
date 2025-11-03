@@ -1886,6 +1886,7 @@ spark = SparkSession.builder \
     .getOrCreate()
 
 print(spark.sparkContext.getConf().getAll())
+print(spark.sparkContext.getConf().get("spark.default.parallelism"))
 
 """
 [‘spark.app.name’, ‘PriorityExample’]
