@@ -1939,7 +1939,7 @@ Environment → Runtime Environment → spark.default.parallelism
 ```
 
 ✅ **Summary:**
-**Default parallelism = number of partitions (based on 128 MB block size or CPU cores)**
+**Default parallelism = number of partitions (based on 128 MB block size or CPU cores)**  
 → Controlled by **`spark.default.parallelism`** when not explicitly set.
 
 ---
