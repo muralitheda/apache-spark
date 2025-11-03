@@ -1778,6 +1778,70 @@ Simply groups all values per key — no computation yet.
 
 ---
 
+## Converting Existing RDDs to Spark DataFrame
+
+| **Method**                       | **Description**                                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **1. Using `toDF()`**            | Converts an RDD of tuples or `Row` objects into a DataFrame using implicit column naming.                    |
+| **2. Using `createDataFrame()`** | Uses `SparkSession.createDataFrame()` to explicitly create a DataFrame from an RDD (with or without schema). |
+
+
+```python
+from pyspark.sql import SparkSession, Row
+
+# Initialize SparkSession
+spark = SparkSession.builder.appName("RDDtoDataFrameExample").getOrCreate()
+
+# ---------------------------
+# Method 1: Using toDF()
+# ---------------------------
+rdd1 = spark.sparkContext.parallelize([("James", 25), ("Anna", 28)])
+df1 = rdd1.toDF(["name", "age"])
+
+print("DataFrame using toDF():")
+df1.show()
+
+# ---------------------------
+# Method 2: Using createDataFrame()
+# ---------------------------
+rdd2 = spark.sparkContext.parallelize([
+    Row(name="John", age=30),
+    Row(name="Mary", age=22)
+])
+df2 = spark.createDataFrame(rdd2)
+
+print("DataFrame using createDataFrame():")
+df2.show()
+
+```
+
+```pqsql
+DataFrame using toDF():
++-----+---+
+| name|age|
++-----+---+
+|James| 25|
+| Anna| 28|
++-----+---+
+
+DataFrame using createDataFrame():
++----+---+
+|name|age|
++----+---+
+|John| 30|
+|Mary| 22|
++----+---+
+
+```
+
+ 🎯 **Summary**
+
+* `toDF()` → Simple and direct (good for small or tuple-based RDDs).
+* `createDataFrame()` → More control, supports schema definition and Row objects.
+
+
+---
+
 ## 12. Schema & Cast Examples
 
 ```python
