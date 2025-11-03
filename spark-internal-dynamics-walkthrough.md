@@ -1859,12 +1859,14 @@ DataFrame using createDataFrame():
 | **2️⃣ Medium Priority**  | **`--conf` (command-line option)**                    | Used with `spark-submit` or `spark-shell` to override defaults for a specific job.          |
 | **1️⃣ Highest Priority** | **`SparkConf` (inside code or SparkSession builder)** | Programmatically set Spark properties inside the application; overrides all other settings. |
 
+Step 1: Set Default in spark-defaults.conf
 ```bash
 ## spark-defaults.conf
 spark.executor.memory    2g
 spark.executor.cores     2
 ```
 
+Step 2: Override via Command Line
 ```bash
 spark-submit \
   --conf spark.executor.memory=4g \
@@ -1873,6 +1875,7 @@ spark-submit \
 
 ```
 
+Step 3: Override Again in Code (Highest Priority)
 ```python
 from pyspark.sql import SparkSession
 
