@@ -2043,7 +2043,7 @@ print("New session started with modified configuration")
 | **Use Case**  | Temporary queries inside one session.                 | Share data across sessions in same application.                                         | Share data between jobs by saving it (e.g., Parquet, Hive). |
 
 
-### **Example**
+### 🎯 **Example**
 
 ```python
 from pyspark.sql import SparkSession
@@ -2082,7 +2082,7 @@ print("\nAccessing Global Temp View from new session:")
 new_spark.sql("SELECT * FROM global_temp.view_global LIMIT 5").show()
 ```
 
-### 💡 **Summary**
+### 🎯 **Summary**
 
 | **Type**                | **Accessible In**              | **Lifetime**                    | **Access Syntax**                           |
 | ----------------------- | ------------------------------ | ------------------------------- | ------------------------------------------- |
