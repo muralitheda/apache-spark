@@ -2711,8 +2711,61 @@ Its key components are:
 
 ---
 
-## 39. 
+## 39. What is a Broadcast Variable?
 
+✅ **Answer:**
+A **Broadcast Variable** in Spark is a **read-only shared variable** that is **cached on each executor node** instead of being sent with every task.
+
+This reduces communication overhead and improves performance when the same data (like lookup tables or reference data) is needed across multiple tasks.
+
+| Feature       | Description                                         |
+| ------------- | --------------------------------------------------- |
+| **Type**      | Read-only shared variable                           |
+| **Stored On** | Each executor (cached once per node)                |
+| **Purpose**   | Avoids repeatedly sending large data to executors   |
+| **Benefit**   | Reduces network I/O and task serialization overhead |
+
+**Example:**
+
+```python
+broadcastVar = sc.broadcast({"IN": "India", "US": "United States"})
+rdd = sc.parallelize(["IN", "US", "IN"])
+result = rdd.map(lambda code: broadcastVar.value[code]).collect()
+print(result)   # ['India', 'United States', 'India']
+```
+
+---
+
+## 40. If we join multiple DataFrames, how do we identify which DataFrame or join is taking more time using Spark UI?
+
+✅ **Answer:**
+You can identify which DataFrame or join operation takes more time by analyzing the **SQL tab** and **Stages tab** in the **Spark UI**.
+
+| Step                            | Where to Look                                                    | What to Check                                                                                                    |
+| ------------------------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **1. SQL Tab**                  | Shows each query execution plan.                                 | Check the **execution DAG** and **physical plan** — it reveals join types (Broadcast, Shuffle Hash, Sort Merge). |
+| **2. Stage Tab**                | Shows runtime for each stage in the join.                        | Identify the stage that takes the longest — it likely corresponds to a large shuffle or join.                    |
+| **3. Tasks Tab (inside Stage)** | Shows task duration, input size, and shuffle read/write metrics. | Helps pinpoint which DataFrame caused heavy shuffle or skew.                                                     |
+| **4. SQL Explain Plan**         | (via `df.explain(True)`)                                         | Shows join strategies and cost; adjust join config based on data size.                                           |
+
+**💡 Optimization Tip:**
+Use appropriate join strategy based on data volume:
+
+* **Broadcast Join** → for small lookup DataFrames (`spark.sql.autoBroadcastJoinThreshold`).
+* **Shuffle Hash / Sort Merge Join** → for large DataFrames.
+
+**Example:**
+
+```python
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 100 * 1024 * 1024)  # 100 MB
+```
+**Summary:**
+🔍 In Spark UI → **SQL Tab → Query → Execution Plan**
+→ Identify long-running stages → Optimize join strategy accordingly.
+
+---
+
+## 41. 
 
 ---
 ## 12. Schema & Cast Examples
