@@ -2415,7 +2415,21 @@ Spark optimizes processing by **running tasks close to where data lives** and **
 
 ---
 
-## 26. 
+## 26. How would you hint the minimum number of partitions during a transformation?
+
+You can specify the **minimum number of partitions** as a **second parameter** in many Spark transformations or when creating an RDD. This helps control parallelism during data loading or transformation.
+
+| **Method**                            | **Example**                                       | **Description**                                                                   |
+| ------------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `sc.parallelize(data, numPartitions)` | `sc.parallelize(range(1, 101), 2)`                | Creates an RDD with **2 partitions**.                                             |
+| `sc.textFile(path, numPartitions)`    | `rdd = sc.textFile("hdfs:///data/file.txt", 400)` | Loads the file into **400 partitions**, determined by Hadoop’s `TextInputFormat`. |
+
+**In short:**
+Set the **number of partitions** in the transformation or data load itself — Spark will create that many **tasks** to read and process data in **parallel**, improving performance and control over workload distribution.
+
+---
+
+## 27. 
 
 ---
 ## 12. Schema & Cast Examples
