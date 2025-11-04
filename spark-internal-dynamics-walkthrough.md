@@ -3072,8 +3072,8 @@ spark = SparkSession.builder.appName("CheckpointDemo").enableHiveSupport().getOr
 spark.sparkContext.setCheckpointDir("hdfs:///tmp/checkpoint_dir")
 
 # Read → Checkpoint → Process → Overwrite
-df = spark.sql("SELECT * FROM cust").checkpoint()
-df.write.mode("overwrite").saveAsTable("cust")
+df = spark.sql("SELECT * FROM default.customer").checkpoint()
+df.write.mode("overwrite").saveAsTable("default.customer")
 ```
 
 #### 🎯 **Option 2: Write to a Temporary Location**
@@ -3081,11 +3081,11 @@ df.write.mode("overwrite").saveAsTable("cust")
 You can write the intermediate data to a temporary location (like Parquet), reload it, and then safely overwrite the source table.
 
 ```python
-df = spark.sql("SELECT * FROM cust")
+df = spark.sql("SELECT * FROM default.customer")
 df.write.mode("overwrite").parquet("hdfs:///tmp/cust_temp/")
 
 df_temp = spark.read.parquet("hdfs:///tmp/cust_temp/")
-df_temp.write.mode("overwrite").saveAsTable("cust")
+df_temp.write.mode("overwrite").saveAsTable("default.customer")
 ```
 
 ### 🎯 **Summary Table**
