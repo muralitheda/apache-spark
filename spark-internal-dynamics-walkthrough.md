@@ -2850,8 +2850,127 @@ If running on **YARN / Kubernetes**, you can:
 
 ---
 
-## 42.
+## 42. How do we read nested structured data in Spark?
 
+
+### 🧩 **Sample JSON file (`data.json`):**
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Alice",
+    "contacts": [
+      {"type": "email", "value": "alice@example.com"},
+      {"type": "phone", "value": "1234567890"}
+    ],
+    "address": {
+      "city": {
+        "name": "Bangalore",
+        "pincode": 560001
+      },
+      "country": "India"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Bob",
+    "contacts": [
+      {"type": "email", "value": "bob@example.com"},
+      {"type": "phone", "value": "9876543210"}
+    ],
+    "address": {
+      "city": {
+        "name": "Chennai",
+        "pincode": 600001
+      },
+      "country": "India"
+    }
+  }
+]
+```
+
+### ⚙️ **PySpark Code**
+
+```python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import explode, col
+
+# Create Spark session
+spark = SparkSession.builder \
+    .appName("NestedDataExample") \
+    .master("local[*]") \
+    .getOrCreate()
+
+# Read the nested JSON file
+df = spark.read.option("multiline", "true").json("file:///home/hduser/data.json")
+
+print("Original Schema:")
+df.printSchema()
+
+print("Original Data:")
+df.show(truncate=False)
+
+# Explode the array field 'contacts'
+df_exploded = df.withColumn("contact", explode(col("contacts")))
+
+# Access deeply nested fields using dot notation
+df_flattened = df_exploded.select(
+    "id",
+    "name",
+    col("contact.type").alias("contact_type"),
+    col("contact.value").alias("contact_value"),
+    col("address.city.name").alias("city_name"),
+    col("address.city.pincode").alias("pincode"),
+    col("address.country").alias("country")
+)
+
+print("Flattened Data:")
+df_flattened.show(truncate=False)
+```
+
+### 🧾 **Output:**
+
+**Schema (Before):**
+
+```
+root
+ |-- address: struct (nullable = true)
+ |    |-- city: struct (nullable = true)
+ |    |    |-- name: string (nullable = true)
+ |    |    |-- pincode: long (nullable = true)
+ |    |-- country: string (nullable = true)
+ |-- contacts: array (nullable = true)
+ |    |-- element: struct (containsNull = true)
+ |    |    |-- type: string (nullable = true)
+ |    |    |-- value: string (nullable = true)
+ |-- id: long (nullable = true)
+ |-- name: string (nullable = true)
+```
+
+**Flattened Data (After explode + dot access):**
+
+```
++---+-----+-------------+---------------+----------+-------+-------+
+|id |name |contact_type |contact_value  |city_name |pincode|country|
++---+-----+-------------+---------------+----------+-------+-------+
+|1  |Alice|email        |alice@example.com|Bangalore|560001|India  |
+|1  |Alice|phone        |1234567890     |Bangalore|560001|India  |
+|2  |Bob  |email        |bob@example.com|Chennai  |600001|India  |
+|2  |Bob  |phone        |9876543210     |Chennai  |600001|India  |
++---+-----+-------------+---------------+----------+-------+-------+
+```
+
+
+✅ **Key Concepts:**
+
+* Use `explode()` to flatten **arrays**.
+* Use **dot notation** (`a.b.c`) to access nested **struct fields**.
+* Optionally use `alias()` to rename flattened columns for clarity.
+
+---
+
+## 43. 
 
 ---
 ## 12. Schema & Cast Examples
