@@ -2383,7 +2383,39 @@ and ends when **the action produces a result or output.**
 
 ---
 
-## 24. 
+## 24. Give examples of transformations (or actions) that trigger Spark jobs.
+
+**Ans:**
+Normally, **transformations** are *lazy* and don’t trigger a Spark job until an **action** is called.
+However, there are a few **special transformations** that internally require executing a job to compute intermediate results.
+
+| **Category**                           | **Examples**                                                  | **Why They Trigger a Job**                                                                                                |
+| -------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| **Transformations that trigger a job** | `sortBy()`, `zipWithIndex()`, `repartition()`, `countByKey()` | These need to compute data metrics (like partition sizes or element ordering), which require executing tasks immediately. |
+| **Actions that trigger a job**         | `collect()`, `count()`, `saveAsTextFile()`, `reduce()`        | Actions always trigger job execution since they materialize the computation.                                              |
+
+**In short:**
+While most transformations are lazy, a few like **`sortBy()`** or **`zipWithIndex()`** internally run Spark jobs to prepare metadata before continuing.
+
+---
+
+## 25. Data is spread across all nodes of the cluster — how does Spark process this data?
+
+**Ans:**
+Spark processes distributed data efficiently by leveraging **data locality** and **parallelism**.
+
+| **Concept**             | **Explanation**                                                                                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Data Locality**       | Spark tries to schedule tasks on the same node where the data resides (or nearby) to **reduce data transfer** across the network. |
+| **Partitioning**        | Data is split into **partitions**, and each partition is processed as a **task** on a cluster node.                               |
+| **Parallel Processing** | Multiple tasks run **simultaneously** across executors on different nodes, enabling parallel computation.                         |
+
+**In short:**
+Spark optimizes processing by **running tasks close to where data lives** and **processing partitions in parallel** across the cluster.
+
+---
+
+## 26. 
 
 ---
 ## 12. Schema & Cast Examples
