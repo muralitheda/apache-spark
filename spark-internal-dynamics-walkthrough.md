@@ -2556,7 +2556,31 @@ rdd.reduceByKey(lambda x, y: x + y).collect()
 ```
 
 ---
-## 33. 
+## 33. Does shuffling change the number of partitions?
+**Yes.**
+
+During a shuffle, Spark **redistributes data across partitions**, and by default, the number of shuffle partitions is set by the configuration parameter:
+
+```python
+spark.conf.get("spark.sql.shuffle.partitions")
+# Default: 200
+```
+
+So, when a shuffle occurs (e.g., during `join`, `groupBy`, `reduceByKey`),
+Spark **creates 200 output partitions by default**, unless explicitly changed using:
+
+```python
+spark.conf.set("spark.sql.shuffle.partitions", 50)
+```
+
+**💡 Note:**
+
+* For **RDDs**, the number of partitions after shuffle depends on the transformation used (e.g., `reduceByKey(numPartitions=10)`).
+* For **DataFrames**, it’s controlled by `spark.sql.shuffle.partitions`.
+
+---
+
+## 34. 
 
 
 ---
