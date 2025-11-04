@@ -2647,7 +2647,38 @@ Enable speculation **only when needed** — in large jobs with thousands of task
 
 ---
 
-## 37. 
+## 37. What is the Master URL in Local Mode?
+
+✅ **Answer:**
+In **local mode**, Spark runs on a single machine using one or more threads — useful for testing or development.
+The **master URL** defines how many threads Spark should use.
+
+| Master URL | Description                                                                               |
+| ---------- | ----------------------------------------------------------------------------------------- |
+| `local`    | Runs Spark with **1 thread** (no parallelism).                                            |
+| `local[n]` | Runs Spark with **n threads**, simulating parallel execution.                             |
+| `local[*]` | Uses **all available cores** on the machine (`Runtime.getRuntime.availableProcessors()`). |
+
+**💡Example:**
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder \
+    .master("local[*]") \
+    .appName("LocalModeExample") \
+    .getOrCreate()
+```
+
+✅ **Use Case:**
+
+* `local` → debugging simple jobs
+* `local[4]` → simulate 4 cores
+* `local[*]` → maximize CPU usage on your system
+
+---
+
+## 38.
 
 ---
 ## 12. Schema & Cast Examples
