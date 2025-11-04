@@ -2853,7 +2853,7 @@ If running on **YARN / Kubernetes**, you can:
 ## 42. How do we read nested structured data in Spark?
 
 
-### 🧩 **Sample JSON file (`data.json`):**
+### 🎯 **Sample JSON file (`data.json`):**
 
 ```json
 [
@@ -2890,7 +2890,7 @@ If running on **YARN / Kubernetes**, you can:
 ]
 ```
 
-### ⚙️ **PySpark Code**
+### 🎯 **PySpark Code**
 
 ```python
 from pyspark.sql import SparkSession
@@ -2929,7 +2929,7 @@ print("Flattened Data:")
 df_flattened.show(truncate=False)
 ```
 
-### 🧾 **Output:**
+### 🎯 **Output:**
 
 **Schema (Before):**
 
