@@ -3001,7 +3001,107 @@ then you can achieve **parallelism** and avoid write contention.
 
 --- 
 
-## 44. 
+## 44. What is checkpointing, when we go for checkpointing?
+
+✅ **Answer:**
+**Checkpointing** is the process of **persisting an RDD’s data** to a **reliable storage system** (like HDFS) and **cutting off its lineage graph** to prevent recomputation in case of driver or node failure. It helps make Spark applications more **fault-tolerant** and **stable**, especially for long-running jobs or streaming workloads.
+
+### 🧠 **When to Use Checkpointing**
+
+Use checkpointing when:
+
+1. 🔄 **Long Lineage Chains** — When an RDD depends on many previous transformations, causing a large lineage graph that risks driver memory overload or recomputation delays.
+2. ⚡ **Streaming Applications** — In Spark Streaming, to recover stateful operations (like `updateStateByKey` or `mapWithState`) during driver restarts.
+3. 💾 **Non-recomputable Source** — When source data cannot be recomputed (e.g., streaming data or ephemeral sources).
+4. 🧱 **Fault Tolerance** — When you need to recover from driver or executor crashes without losing intermediate computations.
+
+
+### 🧩 **Example**
+
+```python
+from pyspark import SparkContext
+
+sc = SparkContext("local[*]", "CheckpointExample")
+sc.setCheckpointDir("hdfs:///checkpoints")
+
+rdd = sc.parallelize(range(1, 10)).map(lambda x: (x, x * 2))
+rdd.checkpoint()     # Mark for checkpointing
+rdd.count()          # Trigger action (saves to checkpoint dir)
+```
+
+After checkpointing, Spark will:
+
+* Save the RDD data to the checkpoint directory.
+* Remove parent lineage references, reducing recomputation overhead.
+
+### 🔍 **Summary Table**
+
+| Feature                           | Description                                                                                                 |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Purpose**                       | Fault tolerance & lineage truncation                                                                        |
+| **Storage**                       | Reliable FS (HDFS, S3, etc.)                                                                                |
+| **When to Use**                   | Long lineage, streaming, unrecomputable data                                                                |
+| **API**                           | `rdd.checkpoint()`                                                                                          |
+| **Difference from cache/persist** | Checkpoint stores data *reliably* and truncates lineage; cache/persist stores *temporarily in memory/disk*. |
+
+
+---
+
+## 45. What happens if we read from a Hive table and write back to the same table using Spark SQL?
+
+✅ **Answer:**
+When you **read from and write back to the same Hive table or path in Spark**, you’ll get the error:
+
+> `AnalysisException: Cannot overwrite a path that is also being read from.`
+
+This occurs because Spark detects that the **read and write paths overlap**. To prevent data corruption or inconsistencies, Spark blocks such operations.
+
+### ⚙️ **Why It Happens**
+
+Spark builds a **lineage graph** of all transformations.
+If the **source and destination paths are the same**, Spark assumes you’re overwriting data that’s still being read — causing potential read/write conflicts. Hence, Spark throws the exception.
+
+### 🧠 **Solutions**
+
+#### ✅ **Option 1: Use Checkpointing**
+
+Checkpointing **breaks the lineage** so that Spark no longer links the output to the original input path.
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("CheckpointDemo").enableHiveSupport().getOrCreate()
+spark.sparkContext.setCheckpointDir("hdfs:///tmp/checkpoint_dir")
+
+# Read → Checkpoint → Process → Overwrite
+df = spark.sql("SELECT * FROM cust").checkpoint()
+df.write.mode("overwrite").saveAsTable("cust")
+```
+
+#### ✅ **Option 2: Write to a Temporary Location**
+
+You can write the intermediate data to a temporary location (like Parquet), reload it, and then safely overwrite the source table.
+
+```python
+df = spark.sql("SELECT * FROM cust")
+df.write.mode("overwrite").parquet("hdfs:///tmp/cust_temp/")
+
+df_temp = spark.read.parquet("hdfs:///tmp/cust_temp/")
+df_temp.write.mode("overwrite").saveAsTable("cust")
+```
+
+### 📘 **Summary Table**
+
+| Scenario                        | Problem                                                                    | Solution                                              |
+| ------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Read + Write to same Hive table | `AnalysisException: Cannot overwrite a path that is also being read from.` | Break lineage using `checkpoint()` or temporary write |
+| Overwriting same path           | Spark prevents overwrite to avoid data corruption                          | Use checkpoint or temp Parquet location               |
+
+---
+
+
+## 46. 
+
 
 ---
 ## 12. Schema & Cast Examples
