@@ -2251,10 +2251,73 @@ print("RDD Sum:", rdd.sum())
 spark.stop()
 
 ```
-
 **In short:**
 You can control executor memory using either `--executor-memory` in the submission command or the configuration property `spark.executor.memory` in code.
 
+---
+
+## 17. How would you control the number of partitions of an RDD?
+
+**Ans:** You can control or change the number of partitions in an RDD using **`repartition()`** or **`coalesce()`** operations.
+
+| **Method**       | **Usage**                                                  | **When to Use**                                                 | **Example**                 |
+| ---------------- | ---------------------------------------------------------- | --------------------------------------------------------------- | --------------------------- |
+| `repartition(n)` | Increases or decreases partitions (creates a full shuffle) | When you want to **increase partitions** for better parallelism | `rdd2 = rdd.repartition(6)` |
+| `coalesce(n)`    | Reduces partitions (avoids full shuffle)                   | When you want to **reduce partitions** efficiently              | `rdd3 = rdd.coalesce(2)`    |
+
+**In short:**
+
+* Use **`repartition()`** → for **increasing** partitions (involves shuffle).
+* Use **`coalesce()`** → for **decreasing** partitions (no shuffle, faster).
+
+---
+
+## 18. What are the possible operations on RDD?
+
+**Ans:** RDDs support two main types of operations — **Transformations** and **Actions**.
+
+| **Type**            | **Description**                                                                                        | **Examples**                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| **Transformations** | Lazy operations that create a **new RDD** from an existing one. They are **not executed immediately**. | `map()`, `flatMap()`, `filter()`, `groupByKey()`, `reduceByKey()`, `join()`, `repartition()` |
+| **Actions**         | Trigger the **actual computation** and return a value to the driver or write data to storage.          | `collect()`, `count()`, `first()`, `take()`, `saveAsTextFile()`, `reduce()`                  |
+
+
+**In short:**
+
+* **Transformations** define *what to do*.
+* **Actions** tell Spark *to do it*.
+
+---
+
+## 18. How does RDD help in parallel job processing?
+
+**Ans:**
+RDDs enable **parallel processing** by dividing data into **partitions**. Each partition is processed **independently and in parallel** across multiple executors or nodes in a Spark cluster.
+
+| **Concept**                     | **Explanation**                                                                                                      |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Partitioning**                | RDD is split into multiple partitions so that each partition can be processed on a separate executor thread or node. |
+| **Parallel Execution**          | Spark schedules tasks for each partition to run concurrently across the cluster.                                     |
+| **Sequential Inside Partition** | Within a single partition, records are processed sequentially.                                                       |
+
+✅ **In short:**
+RDDs enable **data parallelism**, allowing Spark to process large datasets **faster and efficiently** across multiple nodes.
+
+---
+
+## 19. What is a transformation?
+
+**Ans:**
+A **transformation** is a **lazy operation** on an RDD that produces a **new RDD** from an existing one. Transformations are **not executed immediately** — they are executed **only when an action** is called.
+
+| **Key Point**       | **Explanation**                                                                                |
+| ------------------- | ---------------------------------------------------------------------------------------------- |
+| **Lazy Evaluation** | Spark builds a logical execution plan (DAG) instead of running the transformation immediately. |
+| **Output**          | Always returns a new RDD.                                                                      |
+| **Examples**        | `map()`, `flatMap()`, `filter()`, `reduceByKey()`, `join()`, `cogroup()`                       |
+
+**In short:**
+Transformations define **what to do** with the data — actual execution happens only when an **action** triggers the computation.
 ---
 
 
