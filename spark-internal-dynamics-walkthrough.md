@@ -2429,7 +2429,24 @@ Set the **number of partitions** in the transformation or data load itself — S
 
 ---
 
-## 27. 
+## 27. How many concurrent tasks can Spark run for an RDD partition?
+
+**Ans:**
+Spark can run **only one concurrent task per RDD partition**, and the total number of tasks running in parallel is limited by the **number of available cores** in the cluster.
+
+| **Concept**                  | **Explanation**                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
+| **Task per Partition**       | Each RDD partition is processed by **exactly one task**.                                         |
+| **Parallelism Limit**        | Maximum concurrent tasks = **total number of cores** available across the cluster.               |
+| **Recommended Partitioning** | Ideally, have **2–3× the number of cores** for better load balancing and resource utilization.   |
+| **Get Default Parallelism**  | `sc.defaultParallelism` gives Spark’s default number of partitions (usually equals total cores). |
+
+**In short:**
+Spark runs **one task per partition**, and the total parallelism depends on **cluster cores**.
+For efficient performance, set partitions ≈ **2–3× total cores** in the cluster.
+
+---
+
 
 ---
 ## 12. Schema & Cast Examples
