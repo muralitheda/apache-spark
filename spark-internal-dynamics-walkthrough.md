@@ -2300,7 +2300,7 @@ RDDs enable **parallel processing** by dividing data into **partitions**. Each p
 | **Parallel Execution**          | Spark schedules tasks for each partition to run concurrently across the cluster.                                     |
 | **Sequential Inside Partition** | Within a single partition, records are processed sequentially.                                                       |
 
-✅ **In short:**
+✅**In short:**
 RDDs enable **data parallelism**, allowing Spark to process large datasets **faster and efficiently** across multiple nodes.
 
 ---
