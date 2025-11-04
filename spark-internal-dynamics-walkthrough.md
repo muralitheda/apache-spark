@@ -2316,7 +2316,6 @@ A **transformation** is a **lazy operation** on an RDD that produces a **new RDD
 | **Output**          | Always returns a new RDD.                                                                      |
 | **Examples**        | `map()`, `flatMap()`, `filter()`, `reduceByKey()`, `join()`, `cogroup()`                       |
 
-**In short:**  
 Transformations define **what to do** with the data — actual execution happens only when an **action** triggers the computation.
 ---
 
