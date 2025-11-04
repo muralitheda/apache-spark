@@ -2447,6 +2447,51 @@ For efficient performance, set partitions ≈ **2–3× total cores** in the clu
 
 ---
 
+## 28. What limits the maximum size of a partition in Spark?
+
+**Ans:**
+The **maximum size of a partition** is mainly limited by the **available memory** and **CPU cores** of the **executor** that processes it.
+
+| **Factor**                           | **Explanation**                                                                                                           |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| **Executor Memory**                  | Each partition must fit in the executor’s memory; too large a partition can cause **OutOfMemory (OOM)** errors.           |
+| **Number of Cores**                  | Each core handles one task (and hence one partition) at a time — limited cores mean limited parallel processing capacity. |
+| **Shuffle / Serialization Overhead** | Large partitions also increase network shuffle time and serialization/deserialization overhead.                           |
+
+✅ **In short:**
+A partition’s size is effectively limited by **executor memory capacity** and **available cores** — partitions that are too large can lead to **OOM** or poor performance.
+
+---
+
+## 29. ✅When Spark works with `file.txt.gz`, how many partitions can be created?
+
+**Ans:**
+When Spark reads a **compressed file** such as `file.txt.gz`, it **cannot split** the file because **Gzip compression is not splittable**.
+Hence, **Spark creates only one partition** for that file — meaning the entire file is read by a **single task**.
+
+If you want to increase parallelism, you can **repartition** the RDD after reading:
+
+```python
+from pyspark import SparkContext
+
+sc = SparkContext(appName="TextFileExample")
+rdd = sc.textFile("file.txt.gz",minPartitions=2) #Even if you specify minPartitions=2, Spark will still create only one partition for .gz files.
+rdd = rdd.repartition(100)
+```
+Now, the RDD will have **100 partitions** of roughly equal size (though data is shuffled during repartitioning).
+
+| **Case**              | **Splittable?** | **Default Partitions**          | **Can Increase Partitions?** |
+| --------------------- | --------------- | ------------------------------- | ---------------------------- |
+| `.txt` (uncompressed) | ✅ Yes           | Multiple (based on HDFS blocks) | Yes                          |
+| `.txt.gz` (Gzip)      | ❌ No            | **1 partition**                 | ✅ Yes, via `repartition()`   |
+| `.bz2` (Bzip2)        | ✅ Yes           | Multiple                        | Yes                          |
+
+**In short:**
+Gzip files (`.gz`) are **non-splittable**, so Spark will initially create **only 1 partition**, but you can **repartition** the RDD afterward to improve parallelism.
+
+---
+
+## 30. 
 
 ---
 ## 12. Schema & Cast Examples
