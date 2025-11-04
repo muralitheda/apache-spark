@@ -2765,7 +2765,93 @@ spark.conf.set("spark.sql.autoBroadcastJoinThreshold", 100 * 1024 * 1024)  # 100
 
 ---
 
-## 41. 
+## 41. We have to read and process N number of HQL/SQL queries. How can we execute them in parallel instead of sequentially in Spark?
+
+✅ **Answer:**
+To **execute multiple HQL/SQL queries in parallel** rather than sequentially in Spark, you can use **multi-threading** (in local mode) or **parallel job submission** (in cluster mode).
+
+Here’s how it works and what the example does 👇
+
+### **Approach**
+
+You can:
+
+1. **Store the SQL/HQLs** (in a file, list, or database table).
+2. **Load them into a DataFrame or RDD.**
+3. **Process them in parallel** by using:
+
+   * Python’s `threading` (local mode)
+   * `spark.scheduler.mode=FAIR` (enables concurrent jobs)
+   * Or separate Spark sessions in cluster mode
+
+
+### **Example Using Threading (Local Mode)**
+
+```python
+from pyspark import SparkContext, SparkConf
+import threading
+
+def run_query(sc, i):
+    print(f"Starting query {i}")
+    # Simulate a job (replace with spark.sql(query))
+    print(sc.parallelize(range(i * 10000)).count())
+
+def run_multiple_queries():
+    conf = SparkConf().setMaster("local[*]").setAppName("ParallelHQLExample")
+    conf.set("spark.scheduler.mode", "FAIR")  # Allow parallel scheduling
+    sc = SparkContext(conf=conf)
+
+    threads = []
+    for i in range(4):  # e.g., 4 queries
+        t = threading.Thread(target=run_query, args=(sc, i))
+        threads.append(t)
+        t.start()
+        print(f"Query {i} started")
+
+    for t in threads:
+        t.join()
+
+    print("All queries completed.")
+
+run_multiple_queries()
+```
+
+### **Explanation**
+
+| Component                   | Purpose                                                   |
+| --------------------------- | --------------------------------------------------------- |
+| `local[*]`                  | Use all available cores for parallel execution            |
+| `spark.scheduler.mode=FAIR` | Enables fair scheduling between concurrent jobs           |
+| `threading.Thread()`        | Allows concurrent job submission to the same SparkContext |
+| `t.join()`                  | Waits for all threads to complete                         |
+
+
+### **Cluster Mode Alternative**
+
+If running on **YARN / Kubernetes**, you can:
+
+* Submit multiple Spark jobs **in parallel** via separate `spark-submit` calls.
+* Or use **Fair Scheduler Pools** via configuration:
+
+  ```bash
+  spark-submit \
+    --conf spark.scheduler.mode=FAIR \
+    --conf spark.scheduler.allocation.file=/path/to/fairscheduler.xml \
+    ...
+  ```
+
+### ✅ **Summary**
+
+| Mode                                  | How to Achieve Parallelism                             |
+| ------------------------------------- | ------------------------------------------------------ |
+| **Local Mode**                        | Use `threading` + `spark.scheduler.mode=FAIR`          |
+| **Cluster Mode (YARN/K8s)**           | Use Fair Scheduler or concurrent `spark-submit` jobs   |
+| **Databricks / Structured Streaming** | Can use multiple concurrent queries using `async` APIs |
+
+---
+
+## 42.
+
 
 ---
 ## 12. Schema & Cast Examples
