@@ -2580,8 +2580,30 @@ spark.conf.set("spark.sql.shuffle.partitions", 50)
 
 ---
 
-## 34. 
+## 34. Which script will you use to run a Spark Application when not using `spark-shell`?
 
+✅ **Answer:**
+You use the **`spark-submit`** script to launch a Spark application — it submits your program to a Spark cluster or local mode for execution.
+
+**Example:**
+
+```bash
+spark-submit \
+  --master yarn \
+  --deploy-mode cluster \
+  --executor-memory 2G \
+  --total-executor-cores 4 \
+  my_spark_app.py
+```
+
+**💡Note:**
+
+* `spark-shell`(for Scala) and `pyspark`(for Python) are REPL (Read–Eval–Print Loop) used for **interactive mode**.
+* `spark-submit` is used for **production or batch job submissions**.
+
+---
+
+## 35. 
 
 ---
 ## 12. Schema & Cast Examples
