@@ -2491,7 +2491,73 @@ Gzip files (`.gz`) are **non-splittable**, so Spark will initially create **only
 
 ---
 
-## 30. 
+## 30. What is coalesce transformation?
+`coalesce()` reduces the number of partitions in an RDD or DataFrame.
+It avoids full shuffle by default (`shuffle=False`), making it faster but less balanced.
+Use it mainly after filters or before saving output.
+
+**Example:**
+
+```python
+from pyspark import SparkContext
+sc = SparkContext(appName="TextFileExample")
+
+rdd = sc.parallelize(range(1, 101), 10)
+rdd2 = rdd.coalesce(5)  # reduce to 5 partitions
+
+rdd3 = rdd.coalesce(5, shuffle=True) # If you need better balance:
+```
+
+---
+
+## 31. What is the difference between `cache()` and `persist()` in RDD?
+
+* `cache()` is a shorthand for `persist(StorageLevel.MEMORY_ONLY)`.
+* `persist()` allows specifying different storage levels (e.g., memory, disk, or both).
+  Both help reuse RDDs across multiple actions without recomputation.
+
+**Example:**
+
+```python
+from pyspark import SparkContext
+sc = SparkContext(appName="TextFileExample")
+
+rdd = sc.textFile("hdfs:///data/file.txt")
+
+# Using cache() → stores in memory only
+rdd.cache()
+
+# Using persist() → stores in memory and disk
+from pyspark import StorageLevel
+rdd.persist(StorageLevel.MEMORY_AND_DISK)
+```
+
+---
+
+## 32. What is Shuffling in Spark?
+Shuffling is the process of **repartitioning or redistributing data** across different partitions — often involving data transfer between executors or even nodes over the network.
+
+It happens during wide transformations like `groupByKey()`, `reduceByKey()`, or `join()` and can be **costly** in terms of performance.
+
+**💡 Tips to Reduce Shuffling:**
+
+* Use **combiners** (e.g., `reduceByKey`, `aggregateByKey`) instead of `groupByKey`.
+* **Repartition wisely** (use `coalesce()` when reducing partitions).
+* **Cache intermediate RDDs** if reused.
+
+**Example:**
+
+```python
+rdd = sc.parallelize([(1, 10), (2, 20), (1, 30), (2, 40)], 2)
+
+# Causes shuffle as data with same key moves to same partition
+rdd.reduceByKey(lambda x, y: x + y).collect()
+# Output: [(1, 40), (2, 60)]
+```
+
+---
+## 33. 
+
 
 ---
 ## 12. Schema & Cast Examples
