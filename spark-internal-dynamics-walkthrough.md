@@ -2183,6 +2183,36 @@ for record in result.collect():
 
 ```
 ---
+
+## 14. How can we distribute dependency JARs to workers?
+
+Spark provides multiple ways to distribute dependency JARs to all worker nodes in the cluster. The JARs are automatically sent from the driver to executors when the job starts.
+
+| **Method**                     | **Description**                                              | **Example**                                              |
+| ------------------------------ | ------------------------------------------------------------ | -------------------------------------------------------- |
+| `--jars` (with `spark-submit`) | Distributes JARs to all worker nodes at job submission time  | `spark-submit --jars /path/myutils.jar,myudf.jar app.py` |
+| `SparkContext.addJar()`        | Dynamically adds JARs at runtime from within your Spark code | `sc.addJar("hdfs:///libs/myudf.jar")`                    |
+
+✅ **Effect:**
+These JARs are **copied to all executors** automatically, making their classes and functions available for use in transformations or actions across the cluster.
+
+---
+
+## 15. Which scheduler is used by SparkContext by default?
+**Ans:** By default, **SparkContext** uses two internal schedulers to manage job execution:
+
+| **Scheduler**     | **Purpose / Function**                                                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **DAGScheduler**  | Breaks the job into **stages** based on RDD lineage (i.e., shuffle boundaries) and creates a **DAG (Directed Acyclic Graph)** of stages. |
+| **TaskScheduler** | Takes each stage from the DAGScheduler and schedules the **individual tasks** to run on executors.                                       |
+
+✅ **In short:**
+`DAGScheduler` handles *stage-level scheduling*, while `TaskScheduler` handles *task-level scheduling* within each stage.
+---
+
+## 15. 
+
+---
 ## 12. Schema & Cast Examples
 
 ```python
