@@ -2365,7 +2365,25 @@ sc.stop()
 `textFile()` is the standard way to **load text data** as an RDD in Spark.
 
 ---
+## 23. How does execution start and end in an RDD or Spark job?
 
+**Ans:**
+Execution in Spark starts from the **earliest RDDs** (those without dependencies or that are cached) and proceeds through the **DAG of transformations**, ending with the **RDD that produces the result of an action**.
+
+| **Stage**                      | **What Happens**                                                                                                        |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **1️⃣ DAG Creation**           | When transformations are applied, Spark builds a logical **Directed Acyclic Graph (DAG)** of RDDs showing dependencies. |
+| **2️⃣ Action Trigger**         | When an **action** (like `collect()` or `count()`) is called, Spark’s **DAGScheduler** starts execution.                |
+| **3️⃣ Stage & Task Execution** | The DAG is split into **stages**, and each stage is executed as **tasks** on worker nodes.                              |
+| **4️⃣ Result Collection**      | Once all tasks finish, results are **returned to the driver** (or written to storage).                                  |
+
+
+**In short:**
+Execution starts from **source RDDs → transformations → actions**,
+and ends when **the action produces a result or output.**
+---
+
+## 24. 
 
 ---
 ## 12. Schema & Cast Examples
