@@ -2377,10 +2377,10 @@ Execution in Spark starts from the **earliest RDDs** (those without dependencies
 | **3️⃣ Stage & Task Execution** | The DAG is split into **stages**, and each stage is executed as **tasks** on worker nodes.                              |
 | **4️⃣ Result Collection**      | Once all tasks finish, results are **returned to the driver** (or written to storage).                                  |
 
-
 **In short:**
 Execution starts from **source RDDs → transformations → actions**,
 and ends when **the action produces a result or output.**
+
 ---
 
 ## 24. 
