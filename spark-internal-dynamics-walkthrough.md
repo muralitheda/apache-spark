@@ -2321,6 +2321,50 @@ Transformations define **what to do** with the data — actual execution happens
 
 ---
 
+## 21. How do you define actions?
+
+**Ans:**
+An **action** is an operation that **triggers the execution** of all previously defined **RDD transformations** and **returns a result** to the Spark driver or writes data to external storage.
+
+| **Key Point** | **Explanation**                                                             |
+| ------------- | --------------------------------------------------------------------------- |
+| **Purpose**   | Executes the RDD lineage (DAG) and performs the actual computation.         |
+| **Result**    | Returns data to the driver or writes output to storage (HDFS, S3, etc.).    |
+| **Examples**  | `collect()`, `count()`, `first()`, `take()`, `saveAsTextFile()`, `reduce()` |
+
+
+**In short:**
+Actions are like a **valve** — until an action is triggered, transformations are just plans.  
+Only actions **materialize** the computation and produce actual results.
+
+---
+
+## 22. How can you create an RDD for a text file?
+
+**Ans:**
+You can create an RDD from a text file using the **`SparkContext.textFile()`** method. It reads data line by line from a file (local, HDFS, S3, etc.) and returns an RDD of strings.
+
+| **Method**          | **Description**                                                                  | **Example**                                    |
+| ------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `sc.textFile(path)` | Reads a text file and creates an RDD where each element is one line of the file. | `rdd = sc.textFile("hdfs:///data/sample.txt")` |
+
+**Example:**
+
+```python
+from pyspark import SparkContext
+
+sc = SparkContext(appName="TextFileExample")
+
+rdd = sc.textFile("hdfs:///home/hduser/transactions.csv")
+print("Number of lines:", rdd.count())
+
+sc.stop()
+```
+
+**In short:**
+`textFile()` is the standard way to **load text data** as an RDD in Spark.
+
+---
 
 
 ---
