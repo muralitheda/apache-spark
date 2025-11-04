@@ -2690,7 +2690,29 @@ k8s://https://<api-server>:<port>
 
 ---
 
-## 38.
+## 38. Define Components of YARN?
+
+✅ **Answer:**
+YARN (**Yet Another Resource Negotiator**) is the cluster resource management layer in Hadoop that manages resources and schedules jobs.
+Its key components are:
+
+| Component                  | Description                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **ResourceManager (RM)**   | Master daemon that manages cluster resources, allocates containers, and coordinates with NodeManagers.      |
+| **ApplicationMaster (AM)** | Manages a single application’s execution. Requests containers from RM, monitors tasks, and handles retries. |
+| **NodeManager (NM)**       | Runs on each worker node. Reports resource usage to RM and launches containers on request.                  |
+| **Container**              | A logical unit of resources (CPU + memory) allocated by RM where tasks or AMs run.                          |
+| **NameNode**               | (From HDFS, not YARN core) — Stores metadata and manages access to distributed file system data.            |
+
+💡 **In Spark on YARN:**
+
+* **Driver runs inside the ApplicationMaster** (in cluster mode).
+* **Executors run inside Containers** on NodeManagers.
+
+---
+
+## 39. 
+
 
 ---
 ## 12. Schema & Cast Examples
