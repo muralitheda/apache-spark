@@ -2103,7 +2103,7 @@ This avoids repeatedly transferring the same data over the network and improves 
 | 💾 **Lower driver load**    | Data is distributed once and reused on executors.              |
 | 🔄 **Efficient joins**      | Ideal for joining a large DataFrame with a small lookup table. |
 
-Example: Broadcast using DF join
+Example: Dataframe broadcasting using Join 
 ```python
 """
 vi ~/transactions.csv
@@ -2144,7 +2144,7 @@ result.explain()
 
 ```
 
-Example: Broadcast using Variable join
+Example: Variable Broadcasting
 ```python
 from pyspark.sql import SparkSession
 
