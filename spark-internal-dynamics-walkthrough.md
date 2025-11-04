@@ -3006,7 +3006,7 @@ then you can achieve **parallelism** and avoid write contention.
 ✅ **Answer:**
 **Checkpointing** is the process of **persisting an RDD’s data** to a **reliable storage system** (like HDFS) and **cutting off its lineage graph** to prevent recomputation in case of driver or node failure. It helps make Spark applications more **fault-tolerant** and **stable**, especially for long-running jobs or streaming workloads.
 
-### 🧠 **When to Use Checkpointing**
+### 🎯 **When to Use Checkpointing**
 
 Use checkpointing when:
 
@@ -3015,8 +3015,7 @@ Use checkpointing when:
 3. 💾 **Non-recomputable Source** — When source data cannot be recomputed (e.g., streaming data or ephemeral sources).
 4. 🧱 **Fault Tolerance** — When you need to recover from driver or executor crashes without losing intermediate computations.
 
-
-### 🧩 **Example**
+### 🎯 **Example**
 
 ```python
 from pyspark import SparkContext
@@ -3034,7 +3033,7 @@ After checkpointing, Spark will:
 * Save the RDD data to the checkpoint directory.
 * Remove parent lineage references, reducing recomputation overhead.
 
-### 🔍 **Summary Table**
+### 🎯 **Summary Table**
 
 | Feature                           | Description                                                                                                 |
 | --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
