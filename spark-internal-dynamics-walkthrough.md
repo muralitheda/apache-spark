@@ -2676,6 +2676,18 @@ spark = SparkSession.builder \
 * `local[4]` → simulate 4 cores
 * `local[*]` → maximize CPU usage on your system
 
+**The list of possible values for .master() in Spark**
+local
+local[N]
+local[*]
+local-cluster[N, cores, memory]
+spark://<host>:<port>
+yarn
+yarn-client
+yarn-cluster
+mesos://<host>:<port>
+k8s://https://<api-server>:<port>
+
 ---
 
 ## 38.
