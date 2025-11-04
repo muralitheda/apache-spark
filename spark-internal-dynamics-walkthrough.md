@@ -2103,6 +2103,7 @@ This avoids repeatedly transferring the same data over the network and improves 
 | 💾 **Lower driver load**    | Data is distributed once and reused on executors.              |
 | 🔄 **Efficient joins**      | Ideal for joining a large DataFrame with a small lookup table. |
 
+Example: Broadcast using DF join
 ```python
 """
 vi ~/transactions.csv
@@ -2140,6 +2141,45 @@ result = transactions.join(broadcast(countries), "country_code")
 result.show()
 
 result.explain()
+
+```
+
+Example: Broadcast using Variable join
+```python
+from pyspark.sql import SparkSession
+
+# 1️⃣ Create Spark session
+spark = SparkSession.builder.appName("BroadcastVariableDemo").getOrCreate()
+sc = spark.sparkContext
+
+# 2️⃣ Small lookup dictionary (can be broadcast)
+country_lookup = {
+    "US": "United States",
+    "IN": "India",
+    "UK": "United Kingdom",
+    "AU": "Australia"
+}
+
+# 3️⃣ Broadcast the dictionary
+broadcast_country = sc.broadcast(country_lookup)
+
+# 4️⃣ Create RDD (simulating transactions)
+transactions = [
+    (1001, "C001", 250.75, "US"),
+    (1002, "C002", 180.00, "IN"),
+    (1003, "C003", 99.50, "UK"),
+    (1004, "C004", 310.25, "IN"),
+    (1005, "C005", 520.00, "AU"),
+]
+
+rdd = sc.parallelize(transactions)
+
+# 5️⃣ Use broadcast variable inside transformation
+result = rdd.map(lambda x: (x[0], x[1], x[2], x[3], broadcast_country.value.get(x[3], "Unknown")))
+
+# 6️⃣ Show result
+for record in result.collect():
+    print(record)
 
 ```
 ---
