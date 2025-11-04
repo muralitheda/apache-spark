@@ -3098,8 +3098,20 @@ df_temp.write.mode("overwrite").saveAsTable("default.customer")
 ---
 
 
-## 46. 
+## 46. How do you change the Hive execution engine to Spark?
 
+**Ans:**
+Use the following command to switch Hive’s engine from MapReduce to Spark (supported from Hive 1.x onwards):
+
+```sql
+set hive.execution.engine=spark;
+```
+
+✅ This makes Hive execute queries using the Spark engine instead of MapReduce.
+
+---
+
+## 47. 
 
 ---
 ## 12. Schema & Cast Examples
