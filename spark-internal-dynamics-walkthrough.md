@@ -2220,6 +2220,38 @@ These JARs are **copied to all executors** automatically, making their classes a
 | 🔧 **spark-submit**     | `--executor-memory`        | `spark-submit --executor-memory 4G app.py` | Allocates 4 GB of memory to each executor.                         |
 | 💻 **Programmatically** | `spark.executor.memory`    | `conf.set("spark.executor.memory", "4g")`  | Sets executor memory inside the SparkConf or SparkSession builder. |
 
+Example: Setting Executor Memory in Code
+```python
+from pyspark import SparkConf, SparkContext
+from pyspark.sql import SparkSession
+
+# 1️⃣ Create SparkConf and set executor memory
+conf = SparkConf() \
+    .setAppName("ExecutorMemoryExample") \
+    .setMaster("local[*]") \
+    .set("spark.executor.memory", "4g") \
+    .set("spark.driver.memory", "2g")
+
+# 2️⃣ Create SparkContext using the above configuration
+sc = SparkContext(conf=conf)
+
+# 3️⃣ Optionally create SparkSession (if using DataFrames)
+spark = SparkSession.builder.config(conf=sc.getConf()).getOrCreate()
+
+# 4️⃣ Print configuration values
+print("Executor Memory:", spark.sparkContext.getConf().get("spark.executor.memory"))
+print("Driver Memory:", spark.sparkContext.getConf().get("spark.driver.memory"))
+
+# 5️⃣ Simple operation
+data = [1, 2, 3, 4, 5]
+rdd = sc.parallelize(data)
+print("RDD Sum:", rdd.sum())
+
+# 6️⃣ Stop Spark
+spark.stop()
+
+```
+
 **In short:**
 You can control executor memory using either `--executor-memory` in the submission command or the configuration property `spark.executor.memory` in code.
 
