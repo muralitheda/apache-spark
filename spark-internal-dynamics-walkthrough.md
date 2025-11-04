@@ -2090,7 +2090,58 @@ new_spark.sql("SELECT * FROM global_temp.view_global LIMIT 5").show()
 | **Global Temp View**    | All sessions in same Spark app | Until app ends                  | `SELECT * FROM global_temp.view_global`     |
 | **Across Applications** | ❌ Not supported directly       | Until external storage deletion | Use saved data (e.g., Parquet, Hive, NoSQL) |
 
+---
 
+## 13. What is the advantage of broadcasting values or broadcasting a DataFrame across a Spark cluster?
+
+Broadcasting in Spark allows sending a read-only copy of a variable or small DataFrame from the driver to all executors only once.  
+This avoids repeatedly transferring the same data over the network and improves performance — especially for joins or lookups with small reference datasets.
+
+| **Benefit**                 | **Explanation**                                                |
+| --------------------------- | -------------------------------------------------------------- |
+| 🚀 **Improved performance** | Reduces shuffle and network I/O during joins or lookups.       |
+| 💾 **Lower driver load**    | Data is distributed once and reused on executors.              |
+| 🔄 **Efficient joins**      | Ideal for joining a large DataFrame with a small lookup table. |
+
+```python
+"""
+vi ~/transactions.csv
+txn_id,cust_id,amount,country_code,txn_date
+1001,C001,250.75,US,2025-11-01
+1002,C002,180.00,IN,2025-11-01
+1003,C003,99.50,UK,2025-11-02
+1004,C004,310.25,IN,2025-11-02
+1005,C005,520.00,AU,2025-11-03
+
+vi ~/countries.csv
+country_code,country_name
+US,United States
+IN,India
+UK,United Kingdom
+AU,Australia
+
+hadoop fs -put ~/transactions.csv /home/hduser/
+hadoop fs -put ~/countries.csv /home/hduser/
+"""
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import broadcast
+
+spark = SparkSession.builder.appName("BroadcastExample").getOrCreate()
+
+# Large DataFrame
+transactions = spark.read.csv("hdfs:///home/hduser/transactions.csv", header=True, inferSchema=True)
+
+# Small lookup DataFrame
+countries = spark.read.csv("hdfs:///home/hduser/countries.csv", header=True, inferSchema=True)
+
+# Broadcast join
+result = transactions.join(broadcast(countries), "country_code")
+result.show()
+
+result.explain()
+
+```
 ---
 ## 12. Schema & Cast Examples
 
