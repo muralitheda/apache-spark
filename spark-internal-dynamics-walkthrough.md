@@ -2211,7 +2211,21 @@ These JARs are **copied to all executors** automatically, making their classes a
 
 ---
 
-## 16. 
+## 16. How would you allocate the amount of memory to each executor?
+
+**Ans:** The amount of memory allocated to each executor can be configured in two ways — either programmatically or through the `spark-submit` command.
+
+| **Method**              | **Configuration Property** | **Example**                                | **Description**                                                    |
+| ----------------------- | -------------------------- | ------------------------------------------ | ------------------------------------------------------------------ |
+| 🔧 **spark-submit**     | `--executor-memory`        | `spark-submit --executor-memory 4G app.py` | Allocates 4 GB of memory to each executor.                         |
+| 💻 **Programmatically** | `spark.executor.memory`    | `conf.set("spark.executor.memory", "4g")`  | Sets executor memory inside the SparkConf or SparkSession builder. |
+
+**In short:**
+You can control executor memory using either `--executor-memory` in the submission command or the configuration property `spark.executor.memory` in code.
+
+---
+
+
 
 ---
 ## 12. Schema & Cast Examples
