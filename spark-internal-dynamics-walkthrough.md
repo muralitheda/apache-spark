@@ -2620,8 +2620,34 @@ A **Task** is the **smallest unit of execution** in Spark — it represents a **
 If you have an RDD with **10 partitions**, Spark will create **10 Tasks** — one per partition — which will be distributed to executors for parallel execution.
 
 ---
-## 36. 
+## 36. What is Speculative Execution of a Task (Straggler Tasks)?
 
+✅ **Answer:**
+**Speculative Execution** is a mechanism in Spark to handle **slow-running (straggler) tasks** by **launching duplicate copies** of those tasks on other executors.
+The first completed copy’s result is accepted, and the others are killed — improving overall stage completion time.
+
+| Concept             | Description                                                                             |
+| ------------------- | --------------------------------------------------------------------------------------- |
+| **When it happens** | When a task runs significantly slower than the median of other tasks in the same stage. |
+| **What Spark does** | Starts a duplicate task (speculative copy) on another executor.                         |
+| **Goal**            | Reduce stage delay caused by slow nodes or network issues.                              |
+| **Default**         | Disabled by default (`spark.speculation=false`).                                        |
+
+**Example:**
+
+```bash
+spark-submit \
+  --conf "spark.speculation=true" \
+  --conf "spark.speculation.multiplier=5" \
+  --class "org.example.MyJob" myapp.jar
+```
+
+**💡Note:**
+Enable speculation **only when needed** — in large jobs with thousands of tasks, excessive speculative execution can overload the driver.
+
+---
+
+## 37. 
 
 ---
 ## 12. Schema & Cast Examples
