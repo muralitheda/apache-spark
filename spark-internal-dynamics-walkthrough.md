@@ -2580,7 +2580,7 @@ spark.conf.set("spark.sql.shuffle.partitions", 50)
 
 ---
 
-## 34. Which script will you use to run a Spark Application when not using `spark-shell`?
+## 34. Which script will you use to run a Spark Application when not using `spark-shell/pyspark`?
 
 ✅ **Answer:**
 You use the **`spark-submit`** script to launch a Spark application — it submits your program to a Spark cluster or local mode for execution.
@@ -2603,7 +2603,25 @@ spark-submit \
 
 ---
 
-## 35. 
+## 35. What is a Task in Spark Job execution?
+
+✅ **Answer:**
+A **Task** is the **smallest unit of execution** in Spark — it represents a **computation on a single data partition** that runs on an executor.
+
+| Concept              | Description                                                                      |
+| -------------------- | -------------------------------------------------------------------------------- |
+| **Definition**       | A Task is a physical unit of work sent by the driver to executors for execution. |
+| **Execution**        | Each Task runs on a single partition of an RDD or DataFrame.                     |
+| **Stage Dependency** | All Tasks in one stage must finish before the next stage starts.                 |
+| **Parallelism**      | Multiple Tasks (one per partition) run in parallel across executors.             |
+| **Retry**            | If a Task fails, Spark can re-run it on another executor.                        |
+
+**💡 Example:**
+If you have an RDD with **10 partitions**, Spark will create **10 Tasks** — one per partition — which will be distributed to executors for parallel execution.
+
+---
+## 36. 
+
 
 ---
 ## 12. Schema & Cast Examples
