@@ -2289,7 +2289,7 @@ You can control executor memory using either `--executor-memory` in the submissi
 
 ---
 
-## 18. How does RDD help in parallel job processing?
+## 19. How does RDD help in parallel job processing?
 
 **Ans:**
 RDDs enable **parallel processing** by dividing data into **partitions**. Each partition is processed **independently and in parallel** across multiple executors or nodes in a Spark cluster.
@@ -2305,7 +2305,7 @@ RDDs enable **data parallelism**, allowing Spark to process large datasets **fas
 
 ---
 
-## 19. What is a transformation?
+## 20. What is a transformation?
 
 **Ans:**
 A **transformation** is a **lazy operation** on an RDD that produces a **new RDD** from an existing one. Transformations are **not executed immediately** — they are executed **only when an action** is called.
