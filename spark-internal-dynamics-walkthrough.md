@@ -3056,14 +3056,14 @@ When you **read from and write back to the same Hive table or path in Spark**, y
 
 This occurs because Spark detects that the **read and write paths overlap**. To prevent data corruption or inconsistencies, Spark blocks such operations.
 
-### ⚙️ **Why It Happens**
+### 🎯 **Why It Happens**
 
 Spark builds a **lineage graph** of all transformations.
 If the **source and destination paths are the same**, Spark assumes you’re overwriting data that’s still being read — causing potential read/write conflicts. Hence, Spark throws the exception.
 
-### 🧠 **Solutions**
+### 🎯 **Solutions**
 
-#### ✅ **Option 1: Use Checkpointing**
+#### 🎯 **Option 1: Use Checkpointing**
 
 Checkpointing **breaks the lineage** so that Spark no longer links the output to the original input path.
 
@@ -3078,7 +3078,7 @@ df = spark.sql("SELECT * FROM cust").checkpoint()
 df.write.mode("overwrite").saveAsTable("cust")
 ```
 
-#### ✅ **Option 2: Write to a Temporary Location**
+#### 🎯 **Option 2: Write to a Temporary Location**
 
 You can write the intermediate data to a temporary location (like Parquet), reload it, and then safely overwrite the source table.
 
@@ -3090,7 +3090,7 @@ df_temp = spark.read.parquet("hdfs:///tmp/cust_temp/")
 df_temp.write.mode("overwrite").saveAsTable("cust")
 ```
 
-### 📘 **Summary Table**
+### 🎯 **Summary Table**
 
 | Scenario                        | Problem                                                                    | Solution                                              |
 | ------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------- |
