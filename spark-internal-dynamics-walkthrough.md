@@ -2970,7 +2970,38 @@ root
 
 ---
 
-## 43. 
+## 43. Two spark jobs running in parallel and writing in the same hive table what will happen? 
+
+✅ **Answer:**
+If two Spark jobs try to **write to the same Hive table at the same time**, the writes will **not happen truly in parallel** — they’ll execute **sequentially** or one job may even **fail** due to **file/lock conflicts**.
+
+However:
+
+* If both jobs write to **different HDFS locations** (for example, different output folders or temporary paths), and
+* You then create or refresh an **external Hive table** pointing to those combined locations,
+
+then you can achieve **parallelism** and avoid write contention.
+
+
+### 🔍 Summary
+
+| Scenario                                                                  | Behavior                                         |
+| ------------------------------------------------------------------------- | ------------------------------------------------ |
+| Two jobs writing to **same Hive table (managed)**                         | One job waits for the other / potential conflict |
+| Two jobs writing to **same path in HDFS**                                 | Data corruption or “file exists” errors          |
+| Two jobs writing to **different HDFS paths** and using **external table** | Parallel writes are possible                     |
+| Use of **partitioned Hive table** (each job writes different partition)   | Safe and parallelizable                          |
+
+
+**Best Practice:**
+👉 When parallel jobs need to write to Hive, ensure they:
+
+* Write to **distinct partitions** or **separate directories**.
+* Use **external tables** or **staging tables**, then perform a final **merge or MSCK REPAIR TABLE** after completion.
+
+--- 
+
+## 44. 
 
 ---
 ## 12. Schema & Cast Examples
