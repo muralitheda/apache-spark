@@ -2982,8 +2982,7 @@ However:
 
 then you can achieve **parallelism** and avoid write contention.
 
-
-### 🔍 Summary
+### 🎯 Summary
 
 | Scenario                                                                  | Behavior                                         |
 | ------------------------------------------------------------------------- | ------------------------------------------------ |
