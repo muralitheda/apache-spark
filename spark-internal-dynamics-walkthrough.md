@@ -2206,11 +2206,12 @@ These JARs are **copied to all executors** automatically, making their classes a
 | **DAGScheduler**  | Breaks the job into **stages** based on RDD lineage (i.e., shuffle boundaries) and creates a **DAG (Directed Acyclic Graph)** of stages. |
 | **TaskScheduler** | Takes each stage from the DAGScheduler and schedules the **individual tasks** to run on executors.                                       |
 
-✅ **In short:**
+✅^^In short:**
 `DAGScheduler` handles *stage-level scheduling*, while `TaskScheduler` handles *task-level scheduling* within each stage.
+
 ---
 
-## 15. 
+## 16. 
 
 ---
 ## 12. Schema & Cast Examples
