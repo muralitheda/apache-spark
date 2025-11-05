@@ -153,6 +153,7 @@ rdd4 = rdd3.flatMap(lambda row:row.split(','))    # Active  Transformation: filt
 print(f"rdd4=>{rdd4.collect()}") # ['4000002', 'PAIGE', 'CHEN', '77', 'TEACHER']
 
 ```
+
 ### Q3.  Map(Active/Passive) transformation charactertics?
     #Map is higher order of method. It takes function as an input argument and returns a RDD.
     #Map used to apply any functionality/transformation on every element of a given RDD.
@@ -170,6 +171,7 @@ print(rdd2.top(5))
 ['4009999,RAY,HEWITT,64,CARPENTER', '4009998,TRACEY,BULLOCK,60,COMPUTER HARDWARE ENGINEER', '4009997,RON,GRIMES,36,COMPUTER HARDWARE ENGINEER', '4009996,TONYA,MCINTOSH,56,ENGINEERING TECHNICIAN', '4009995,REBECCA,DENNIS,37,TEACHER']
 """
 ```
+
 ### Q4. flatMap(Active) transformation charactertics?
     #flatMAP is higher order of method.
     #flatMAP used to iterate on the given list of values and flatten it or expose it like explode function in DB
@@ -230,12 +232,24 @@ print(flatmap_rdd1.collect())
 """
 
 ```
+
 ### Q5. Filter(Active) transformation charactertics?
     #Filter is higher order of method. It takes function as an input argument and returns a RDD.
     #Filter used to apply any conditions on every element of a given RDD.
     #Filter is active transformation.
     #Filter is like a for/while loop with if condition but it is distributed & parallel function that can run on rdd partitions concurrently.
     #SQL side example: select statement with a where clause.
+
+```python
+
+filter_func1 = lambda row: 'GCP' in row.upper()
+filter_rdd2 = rdd1.filter(filter_func1)
+print(filter_rdd2.collect())
+
+"""
+['informatica java aws gcp', 'gcp aws azure spark', 'gcp pyspark hadoop hadoop']
+"""
+```
 
 ### Q6.
 ### Q7.
