@@ -187,7 +187,9 @@ print(rdd2.top(5))
     INR
 
 ```python
+
 #Structured data :: Flatting
+
 currency_list = [ ["usd","eur","gbp"], ["mar","sgd","inr"] ]
 for i in (currency_list):
     for j in i:
