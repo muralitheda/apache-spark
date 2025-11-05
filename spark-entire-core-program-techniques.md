@@ -60,9 +60,6 @@ try:
 except Exception as e:
     print(f"Exception Occured: {e}")
 
-"""
-Exception Occured: 'SparkContext' object is not callable
-"""
 
 spark.stop() # Recreating a new spark session. This will will create a new SparkContext
 spark1 = SparkSession.builder.getOrCreate()
@@ -73,11 +70,11 @@ print(f"sc1:{sc1}")
 """
 spark:<pyspark.sql.session.SparkSession object at 0xffff7b608d60>
 sc:<SparkContext master=local[*] appName=pyspark-shell>
+
 Exception Occured: 'SparkContext' object is not callable
 
 spark1:<pyspark.sql.session.SparkSession object at 0xffff88787e20>
 sc1:<SparkContext master=local[*] appName=pyspark-shell>
-
 """
 ```
 
