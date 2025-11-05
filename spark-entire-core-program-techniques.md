@@ -122,7 +122,7 @@ print(f"revised_salary_rdd2.collect():{revised_salary_rdd2.collect()}") # [25100
 
 ## 3. What is Transformation and Action in RDD?
 
-### Q1. Q1. What is Transformation & Action in RDD?
+### Q1. What is Transformation & Action in RDD?
         Transformation:  If a function/method returns another RDD.   Operations => map(), flatMap(), filter(), distinct(), union()
         Action        :  If a function/method returns RESULT(VALUE). Operations => collect(), count(), take(3), reduce(), saveAsTextFile()
 
