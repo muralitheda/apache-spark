@@ -170,7 +170,61 @@ print(rdd2.top(5))
 ['4009999,RAY,HEWITT,64,CARPENTER', '4009998,TRACEY,BULLOCK,60,COMPUTER HARDWARE ENGINEER', '4009997,RON,GRIMES,36,COMPUTER HARDWARE ENGINEER', '4009996,TONYA,MCINTOSH,56,ENGINEERING TECHNICIAN', '4009995,REBECCA,DENNIS,37,TEACHER']
 """
 ```
-### Q4.
+### Q4. flatMAP(Active) transformation charactertics?
+    #flatMAP is higher order of method.
+    #flatMAP used to iterate on the given list of values and flatten it or expose it like explode function in DB
+    #flatMAP runs nested 2 for loops when comparing with python programming
+
+    A table with 2 rows:
+    [ ["USD","EUR","GBP"], ["MAR","SGD","INR"] ]
+    
+    #Flattening
+    USD
+    EUR
+    GBP
+    MAR
+    SGD
+    INR
+
+```python
+#Structured data :: Flatting
+currency_list = [ ["usd","eur","gbp"], ["mar","sgd","inr"] ]
+for i in (currency_list):
+    for j in i:
+        print(j.upper())
+
+rdd1 = spark.sparkContext.parallelize(currency_list)
+rdd2 = rdd1.flatMap(lambda x:x)      # exposing two list elements into a single list.
+rdd3 = rdd2.map(lambda x:x.upper())
+print(rdd3.collect())
+
+"""
+USD
+EUR
+GBP
+MAR
+SGD
+INR
+['USD', 'EUR', 'GBP', 'MAR', 'SGD', 'INR']
+"""
+
+#Unstructure data :: Flattening
+"""
+#vi /home/hduser/unstruct.txt
+hadoop mypyspark hadoop mypyspark kafka datascience
+mypyspark hadoop mypyspark datascience
+informatica java aws gcp
+gcp aws azure mypyspark
+gcp mypyspark hadoop hadoop
+"""
+rdd1 = spark.sparkContext.textFile('file:///home/hduser/unstruct.txt')
+flatmap_rdd1 = rdd1.flatMap(lambda x:x.split(' '))
+print(flatmap_rdd1.collect())
+"""
+['hadoop', 'spark', 'hadoop', 'spark', 'kafka', 'datascience', 'spark', 'hadoop', 'spark', 'datascience', 'informatica', 'java', 'aws', 'gcp', 'gcp', 'aws', 'azure', 'spark', 'gcp', 'pyspark', 'hadoop', 'hadoop']
+"""
+
+```
 ### Q5.
 ### Q6.
 ### Q7.
