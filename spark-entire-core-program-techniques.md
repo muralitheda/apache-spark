@@ -230,7 +230,13 @@ print(flatmap_rdd1.collect())
 """
 
 ```
-### Q5.
+### Q5. Filter(Active) transformation charactertics?
+    #Filter is higher order of method. It takes function as an input argument and returns a RDD.
+    #Filter used to apply any conditions on every element of a given RDD.
+    #Filter is active transformation.
+    #Filter is like a for/while loop with if condition but it is distributed & parallel function that can run on rdd partitions concurrently.
+    #SQL side example: select statement with a where clause.
+
 ### Q6.
 ### Q7.
 ### Q8.
