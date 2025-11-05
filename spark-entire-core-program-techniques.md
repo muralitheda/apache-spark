@@ -45,6 +45,10 @@ hiveContext:<pyspark.sql.context.HiveContext object at 0xffff676fffa0>
 """
 ```
 
+### Q1. Can we have more than SparkContext in a same application? 
+✅ **Ans:**  No, only one can be created. Also it is not allowed and not a good practice to load same program in different memory containers again and again.
+Otherwise we will get the error: sc=mypyspark.sparkContext() TypeError: 'SparkContext' object is not callable
+
 ## 2. RDD (Resilient Distributed Dataset)
 
 ## 3. What is Transformation and Action in RDD?
