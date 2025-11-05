@@ -251,8 +251,20 @@ print(filter_rdd2.collect())
 """
 ```
 
-### Q6.
-### Q7.
+### Q6. Difference between `map()` and `flatMap()`
+    # Map is equivalent to select statement with some functions in the select statement.
+    # flatMAP is equivalent to select with EXPLODE function in the select statement.
+    # Map will iterate first level (rows), flatMap will iterate two levels (rows and it's each elements(cols) for transposing/flattening)
+    # Map can be applied structured data. flatMap will be applied both structured and unstructured data also.
+
+### Q7. `distinct()` & `union()` transformation functions.
+
+```python
+rdd1 = spark.sparkContext.parallelize([1,2,3,4])
+rdd2 = spark.sparkContext.parallelize([3,4,5,6])
+distinct_union_rdd = rdd1.union(rdd2).distinct()
+print(distinct_union_rdd.collect()) # [1, 2, 3, 4, 5, 6]
+```
 ### Q8.
 ### Q9.
 ### Q10.
