@@ -73,6 +73,54 @@ print("spark1.sparkContext is spark3.sparkContext:",spark1.sparkContext is spark
 
 ## 2. RDD (Resilient Distributed Dataset)
 
+### Q1. Spark Terminologies?
+    1. RDD            :Resilient(can be rebuild) Distribuited(across multiple nodes memory) Dataset (can come from anywhere)
+    2. DAG            :(Direct Acyclic Graph)
+    3. Transformation :
+    4. Action         :
+    5. Lineage        :(Direct relation between transformation and action)
+
+### Q2. What is RDD?
+    Resilient Distributed Dataset, Lazily evaluated and executed, Immutable, Core Spark Abstraction, Fundamental unit of data, Lineage to rebuild.
+
+### Q3. What are ways to create RDDs?
+    1. RDD from any sources(different filesystems)
+    2. RDDs/DFs can be created programatically
+    3. RDDs/DFs from another RDD/DF
+    4. RDD/DF from memory 
+
+```python
+"""
+download the csv dataset "custs" to linux and copy it to hdfs
+
+ls /home/hduser/custs
+hadoop fs -put /home/hduser/custs /user/hduser/
+hadoop fs -ls /home/hduser/custs
+
+"""
+#1. RDD creation from different filesystems
+file_rdd1 = spark.sparkContext.textFile("file:///home/hduser/custs") # linux file system
+hdfs_rdd1 = spark.sparkContext.textFile("hdfs:///user/hduser/custs") # hdfs file system
+
+#2. RDD creation programatically
+program_rdd1 = spark.sparkContext.parallelize(range(1,1000))
+salary_list = [20000,30000,40000,50000]
+salary_list_rdd1 = spark.sparkContext.parallelize(salary_list,2) # Creating distributed RDD referencing 2 memory location (partitions)
+print(f"salary_list_rdd1.collect():{salary_list_rdd1.collect()}") # Collect Action: Consolidate all the partitions and produce one result
+print(f"salary_list_rdd1.glom().collect():{salary_list_rdd1.glom().collect()}") # Collect Action: Partition wise collect output
+
+#3. RDD/DFs from another RDD/DF
+revised_salary_rdd1 = salary_list_rdd1.map(lambda sal:sal+5000) # rdd created from another rdd
+print(f"revised_salary_rdd1.collect():{revised_salary_rdd1.collect()}") # [25000, 35000, 45000, 55000]
+
+#4. RDD/DF from memory
+revised_salary_rdd1.cache() # value will be persist in the memory till the program complete exit
+revised_salary_rdd2 = revised_salary_rdd1.map(lambda sal:sal+100) # rdd is created from memory
+print(f"revised_salary_rdd2.collect():{revised_salary_rdd2.collect()}") # [25100, 35100, 45100, 55100]
+
+```
+
+
 ## 3. What is Transformation and Action in RDD?
 
 ## 4. Performance Optimization Basics
