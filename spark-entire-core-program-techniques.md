@@ -13,7 +13,6 @@ SparkSession object will instantiate SparkContex, SqlContext, HiveContext Object
            |__getOrCreate()            => method to create a new SparkSession object or referring to existing SparkSession
 ```
 
-```
 
 ## 2. RDD (Resilient Distributed Dataset)
 
