@@ -154,7 +154,7 @@ print(f"rdd4=>{rdd4.collect()}") # ['4000002', 'PAIGE', 'CHEN', '77', 'TEACHER']
 
 ```
 
-### Q3.  Map(Active/Passive) transformation charactertics?
+### Q3.  map() (Active/Passive) transformation charactertics?
     #Map is higher order of method. It takes function as an input argument and returns a RDD.
     #Map used to apply any functionality/transformation on every element of a given RDD.
     #Map is like a for/while loop but it is distributed & parallel function that can run on rdd partitions concurrently.
@@ -172,7 +172,7 @@ print(rdd2.top(5))
 """
 ```
 
-### Q4. flatMap(Active) transformation charactertics?
+### Q4. flatMap() (Active) transformation charactertics?
     #flatMAP is higher order of method.
     #flatMAP used to iterate on the given list of values and flatten it or expose it like explode function in DB
     #flatMAP runs nested 2 for loops when comparing with python programming
@@ -233,7 +233,7 @@ print(flatmap_rdd1.collect())
 
 ```
 
-### Q5. Filter(Active) transformation charactertics?
+### Q5. filter() (Active) transformation charactertics?
     #Filter is higher order of method. It takes function as an input argument and returns a RDD.
     #Filter used to apply any conditions on every element of a given RDD.
     #Filter is active transformation.
