@@ -170,7 +170,7 @@ print(rdd2.top(5))
 ['4009999,RAY,HEWITT,64,CARPENTER', '4009998,TRACEY,BULLOCK,60,COMPUTER HARDWARE ENGINEER', '4009997,RON,GRIMES,36,COMPUTER HARDWARE ENGINEER', '4009996,TONYA,MCINTOSH,56,ENGINEERING TECHNICIAN', '4009995,REBECCA,DENNIS,37,TEACHER']
 """
 ```
-### Q4. flatMAP(Active) transformation charactertics?
+### Q4. flatMap(Active) transformation charactertics?
     #flatMAP is higher order of method.
     #flatMAP used to iterate on the given list of values and flatten it or expose it like explode function in DB
     #flatMAP runs nested 2 for loops when comparing with python programming
