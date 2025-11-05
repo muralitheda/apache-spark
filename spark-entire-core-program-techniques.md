@@ -45,27 +45,6 @@ hiveContext:<pyspark.sql.context.HiveContext object at 0xffff676fffa0>
 """
 ```
 
-
-#SparkSession Object Creation
-spark=SparkSession.builder.getOrCreate()
-print(spark)
-
-#Accessing the underlying SparkContext with the Spark Session
-sc=spark.sparkContext
-print(f"SparkContext:",sc)
-
-#Accessing the underlying SQLContext with the Spark Session
-from pyspark.sql import SQLContext
-sqlContext = SQLContext(sc)
-print(f"SparkContext:",sqlContext)
-
-#Accessing the underlying HiveContext with the Spark Session
-from pyspark.sql import HiveContext
-hiveContext = HiveContext(sc)
-print(f"HiveContext:",hiveContext)
-```
-
-
 ## 2. RDD (Resilient Distributed Dataset)
 
 ## 3. What is Transformation and Action in RDD?
