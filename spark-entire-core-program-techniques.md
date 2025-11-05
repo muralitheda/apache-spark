@@ -46,36 +46,29 @@ hiveContext:<pyspark.sql.context.HiveContext object at 0xffff676fffa0>
 ```
 
 ### Q1. Can we have more than SparkContext in a same application? 
-✅ **Ans:**  Only one active SparkContext is allowed per application. Creating more causes an error. Use multiple SparkSessions instead—they share the same SparkContext.
+✅ **Ans:**  Only one active SparkContext is allowed per `application`. Creating more causes an error. Use multiple SparkSessions instead—they share the same SparkContext.
 
 ```python
 from pyspark.sql import SparkSession
-spark = SparkSession.builder.getOrCreate()
-sc = spark.sparkContext
-print(f"spark:{spark}")
-print(f"sc:{sc}")
+
+# Create first SparkSession
+spark1 = SparkSession.builder.appName("App1").getOrCreate()
 
 try:
-    sc1 = spark.sparkContext() #() creates a new object
+    sc1 = spark1.sparkContext()
 except Exception as e:
-    print(f"Exception Occured: {e}")
+    print(f"Exception Occured: {e}") # Exception Occured: 'SparkContext' object is not callable
+    
+# Create Second SparkSession (returns the same session)
+spark2 = SparkSession.builder.appName("App2").getOrCreate()
 
+# Create a new isolated session (shares same SparkContext)
+spark3 = spark1.newSession() # Or spark1.stop(); spark3 = SparkSession.builder.appName("App1").getOrCreate()
 
-spark.stop() # Recreating a new spark session. This will will create a new SparkContext
-spark1 = SparkSession.builder.getOrCreate()
-sc1 = spark.sparkContext
-print(f"spark1:{spark1}")
-print(f"sc1:{sc1}")
+print("spark1 is spark2:",spark1 is spark2) # True -> same SparkSession
+print("spark1 is spark3:",spark1 is spark3) # False -> new SparkSession
+print("spark1.sparkContext is spark3.sparkContext:",spark1.sparkContext is spark3.sparkContext) # True -> shared SparkContext
 
-"""
-spark:<pyspark.sql.session.SparkSession object at 0xffff7b608d60>
-sc:<SparkContext master=local[*] appName=pyspark-shell>
-
-Exception Occured: 'SparkContext' object is not callable
-
-spark1:<pyspark.sql.session.SparkSession object at 0xffff88787e20>
-sc1:<SparkContext master=local[*] appName=pyspark-shell>
-"""
 ```
 
 ## 2. RDD (Resilient Distributed Dataset)
