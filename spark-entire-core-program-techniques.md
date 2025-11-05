@@ -209,6 +209,7 @@ INR
 """
 
 #Unstructure data :: Flattening
+
 """
 #vi /home/hduser/unstruct.txt
 hadoop mypyspark hadoop mypyspark kafka datascience
@@ -217,9 +218,11 @@ informatica java aws gcp
 gcp aws azure mypyspark
 gcp mypyspark hadoop hadoop
 """
+
 rdd1 = spark.sparkContext.textFile('file:///home/hduser/unstruct.txt')
 flatmap_rdd1 = rdd1.flatMap(lambda x:x.split(' '))
 print(flatmap_rdd1.collect())
+
 """
 ['hadoop', 'spark', 'hadoop', 'spark', 'kafka', 'datascience', 'spark', 'hadoop', 'spark', 'datascience', 'informatica', 'java', 'aws', 'gcp', 'gcp', 'aws', 'azure', 'spark', 'gcp', 'pyspark', 'hadoop', 'hadoop']
 """
