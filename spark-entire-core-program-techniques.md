@@ -153,8 +153,20 @@ rdd4 = rdd3.flatMap(lambda row:row.split(','))    # Active  Transformation: filt
 print(f"rdd4=>{rdd4.collect()}") # ['4000002', 'PAIGE', 'CHEN', '77', 'TEACHER']
 
 ```
+### Q3.  Map(Active/Passive) transformation charactertics?
+    #Map is higher order of method. It takes function as an input argument and returns a RDD.
+    #Map used to apply any functionality/transformation on every element of a given RDD.
+    #Map is like a for/while loop but it is distributed & parallel function that can run on rdd partitions concurrently.
+    #SQL side example: 
+        select firstname from customer        => select is a map function
+        select upper(firstname) from customer => upper(firstname) is a lambda function
 
-### Q3.
+```python
+map_func_upper1=lambda row:row.upper()
+rdd2=rdd1.map(map_func_upper1) #HOF, select=map, upper(cols)=lambda function
+print(rdd2.top(5)) # ['4009999,RAY,HEWITT,64,CARPENTER', '4009998,TRACEY,BULLOCK,60,COMPUTER HARDWARE ENGINEER', '4009997,RON,GRIMES,36,COMPUTER HARDWARE ENGINEER', '4009996,TONYA,MCINTOSH,56,ENGINEERING TECHNICIAN', '4009995,REBECCA,DENNIS,37,TEACHER']
+
+```
 ### Q4.
 ### Q5.
 ### Q6.
