@@ -120,8 +120,51 @@ print(f"revised_salary_rdd2.collect():{revised_salary_rdd2.collect()}") # [25100
 
 ```
 
-
 ## 3. What is Transformation and Action in RDD?
+
+### Q1. Q1. What is Transformation & Action in RDD?
+        Transformation:  If a function/method returns another RDD.   Operations => map(), flatMap(), filter(), distinct(), union()
+        Action        :  If a function/method returns RESULT(VALUE). Operations => collect(), count(), take(3), reduce(), saveAsTextFile()
+
+```python
+rdd1 = spark.sparkContext.parallelize([20000,30000,15000,40000,50000],2)
+rdd2 = rdd1.map(lambda sal:sal+1000) #Transformation (MAP returns another RDD)
+print(rdd2.count())                  #Action (COUNT trigers computation and returns RESULT)
+```
+
+### Q2. What are types of Transformation?
+        Active:  If the output number of elements of a given RDD is different from the input number of element of an RDD.
+        Passive: If the output number of elements of a given RDD is same      from the input number of element of an RDD.
+```python
+"""
+#/home/hduser/custs
+4000001,Kristina,Chung,55,Pilot
+4000002,Paige,Chen,77,Teacher
+4000003,Sherri,Melton,34,Firefighter
+4000004,Gretchen,Hill,66,Computer hardware engineer
+"""
+rdd1 = spark.sparkContext.textFile("file:///home/hduser/custs")
+rdd2 = rdd1.map(lambda row:row.upper())         # Passive Transformation: map       - input passed 4 and output is 4
+
+rdd3 = rdd2.filter(lambda row:'4000002' in row) # Active  Transformation: filter    - input passed 4 and output is 1
+print(f"rdd3=>{rdd3.collect()}") # ['4000002,PAIGE,CHEN,77,TEACHER']
+
+rdd4 = rdd3.flatMap(lambda row:row.split(','))    # Active  Transformation: filterMap - input passed 1 row and output is 5 rows
+print(f"rdd4=>{rdd4.collect()}") # ['4000002', 'PAIGE', 'CHEN', '77', 'TEACHER']
+
+```
+
+### Q3.
+### Q4.
+### Q5.
+### Q6.
+### Q7.
+### Q8.
+### Q9.
+### Q10.
+### Q11.
+### Q12.
+
 
 ## 4. Performance Optimization Basics
 
