@@ -525,4 +525,69 @@ reduced_pair_rdd.saveAsTextFile() file:///home/hduser/sparkprogram/210427
 
 ## 4. Performance Optimization Basics
 
+### 1. Basic Coding Standards for Performance Optimization
+            - Remove/comment all dead codes
+            - Comment the actions used intermediately for dev/testing purpose
+            - Comment the actions especially brings entire data to the driver
+            - For analysis purpose, use actions other than collect() like (take(2),first(),count())
+
+### 2. Partition Creation/Management
+            - Spark Partitioning uses all these methodologies:
+                - Block Size : 32mb local / 128m hdfs
+                - Cores      : no of partitions = no of cores
+                - Default    : no of partitions: 2
+                - Functions  : coalesce(range list), repartition(round robin)
+                
+            - Hive: partition (folders of respect columns), clustered by column into no of buckets (files with hash bucketing applied)
+            
+            - How and all the partitions can be created/managed?
+                1. Partitions are defined when creating RDDs/DFs (Organically/Customized)
+                2. Before/After performing Transformation, Before performing Action
+
+### 3. What is Partitioning?
+            - Partitioning is horizontal devision of data
+            - HDFS=blocks, MR=InputSplit, Sqoop=Mapper, Hive=Partition(folders),Bucket(no of files), YARN=(containers), Spark(RDD/DF/View/DStreams)...
+            - Partitioning is used for defining the degree of parallelism and distribution
+            - Spark Partition help us distribute the data across multiple nodes in memory in a form of RDD partitions
+        
+
+### 4. How to control no of partitions?
+            - coalesce()     - transformation help us to reduce the number of partitions
+                             - range of values in a given partitioning or data size is random/difference in diff paritition
+            - repartition()  - transformation help us to increase the number of partitions (internally coalesce(shuffle=True))
+                             - round robin partitioning. equal distribution between partitioning using shuffle
+        
+### 5. When the partitions can be increased or decreased in an RDD? 
+         -  Scenario 1 # Increase it before performing the transformation(flatmap)     => repartition()
+         -  Scenario 2 # Decrease it after performing the transformation (filter)      => coalesce()
+         -  Scenario 3 # Decrease it before performation the transformation(map)       => coalesce()
+
+### 6. Before we run an action, can we change the number of partitions? 
+            yes
+
+### 7. How many files will be generated? 
+            No of files = No of Partitions
+
+### 8. Memory Optimization - using Cache()/Persist() once RDD is created
+            - cache() & persist(diffierent StorageLevel's) - transformations are used to ask GC, not to purge the data from Executor memory
+            - unpersist() - action is used to ask GC to purge the data from the Executor memory
+            - If the underlying data in RDD is not changed and used multiple times then go for cache()/persist()
+            - If the underlying data in RDD is keep changing(streaming apps) then refesh the cache frequently (unpersist()) and cache() it again
+            - Consider: Volumne of data, availability or resources, time taken for serialization/deserialization, GC time, etc.,
+            - Right type of cache in the name of persist() is supposed to be considered.  
+            - Persist()=> StorageLevel Options: # memory(2)/disk(3)/both(2)/replica/serialization(1)/off_heap(1) 
+    
+### 9. Broadcasting:
+            - It is commonly used in Spark SQL joins.
+            - Spark Broadcasting a special static variable that can broadcast once for all from driver to worker(executors)
+            - Hence Spark RDD/DF partitions rows can refer that broadcasted variable locally rather than getting it from the driver for every iteration
+            - How much rows a rdd or variable can be broadcasted? default is 10mb.
+
+### 10. Accumulator:
+            - Accumulator is special incremental variable used for accumulating the number of tasks performed by the executors.
+            - Accumulator is used to identify the progress completion of tasks running in the respective executors.
+            - Accumulator used in Spark framework for creating job counters.
+            - Example: logging/task completition percent/number of tasks completed.
+
 ## 5. Main Program to covert all the Spark core programming concepts 
+
