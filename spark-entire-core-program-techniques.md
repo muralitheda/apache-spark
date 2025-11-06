@@ -342,7 +342,7 @@ print(dept_emp_sal_rdd.collect())
 ```
 
 
-### Q9. Q7: Write a word count program using mypyspark core? How to identify the occurance of the given words in a unstructured dataset?
+### Q9. Write a word count program using mypyspark core? How to identify the occurance of the given words in a unstructured dataset?
 
 ```python
 """
