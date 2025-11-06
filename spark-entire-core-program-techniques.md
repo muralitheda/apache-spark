@@ -424,7 +424,37 @@ if __name__ == '__main__':
 
 ```
 
-### Q11.
+### Q11. What are all we learn out of this exercise?
+        1. 40% of the Spark concepts are covered.
+        2. All Spark Core Concepts: 
+                - SparkSession,
+                - sparkContext Object,
+                - RDD,
+                - Paired RDD => reduceByKey(), groupByKey(), sortByKey(), join()
+                - DAG => Plan for execution and planning,
+                - Lineage,
+                - Transformation (Active/Passive) => map(), filter(), flatMap(), distinct(), union()
+                - Action (mandatory) => collect(), count(), take(), first(), reduce(), saveAsTextFile()
+                - Partitioning
+        3. How to write a standard mypyspark application:
+                - defining main method
+                - evaluating parameters
+                - passing parameters
+                - seperating entire application
+                - referencing of libraries
+                - defining/leveraging reusable function
+                - controlling the main method
+        4. All Spark Terminologies:
+                - Cluster Manager(--master yarn/local) => RM
+                - Spark Worker                         => NM
+                - Deployment Mode(--deploy-mode client/cluster)
+                - Spark Driver                         => AM
+                    - SparkSession/SparkObject
+                - Spark Executor                       => Containers
+                - Job(Spark Application)
+                - Horizontal Tasks (Partitions)
+                - Vertical Stages (Shuffling happens)
+
 ### Q12.
 
 
