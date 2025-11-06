@@ -412,7 +412,7 @@ def main(arg1,arg2):
     reduced_pair_rdd.saveAsTextFile(arg2)
 
 if __name__ == '__main__':
-    spark = SparkSession.builder.getOrCreate()
+    spark = SparkSession.builder.appName("AppWordCountProgram").getOrCreate()
     if len(sys.argv) < 3 :
         print('[WARNING]Input/Output file path is not given. So selecting default path')
         formatted_time= datetime.datetime.now().strftime("%H%M%S")
@@ -421,7 +421,16 @@ if __name__ == '__main__':
         main(input_path,output_path)
     else:
         main(sys.argv[1],sys.argv[2])
-
+"""
+[WARNING]Input/Output file path is not given. So selecting default path
+3
+Total number of words (excluding Java) using reduce: 24
+reduced_pair_rdd.collect() [('Python', 2), ('Cloud', 1), ('JavaScript', 1), ('Spark', 1), ('SQL', 1), ('Go', 1), ('Azure', 1), ('TensorFlow', 1), ('AI', 3), ('Docker', 2), ('Kubernetes', 1), ('Rust', 2), ('React', 1), ('Kafka', 1), ('Git', 1), ('AWS', 1), ('PyTorch', 1), ('Android', 1), ('iOS', 1)]
+reduced_pair_rdd.count(): 19
+reduced_pair_rdd.take(3) [('Python', 2), ('Cloud', 1), ('JavaScript', 1)]
+reduced_pair_rdd.first() ('Python', 2)
+reduced_pair_rdd.saveAsTextFile() file:///home/hduser/sparkprogram/210427
+"""
 ```
 
 ### Q11. What are all we learn out of this exercise?
@@ -455,7 +464,40 @@ if __name__ == '__main__':
                 - Horizontal Tasks (Partitions)
                 - Vertical Stages (Shuffling happens)
 
-### Q12.
+### Q12. How to materialize Actions in RDDs?
+        - Action is an RDD function/method used to return the result/value to the driver or the storage layer
+        - Collect() action used to collect the rdd elements as a result to the driver from executors.
+
+```python
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+rdd1 = spark.sparkContext.parallelize(range(1,10),2)
+print('rdd1.collect():',rdd1.collect())
+print('rdd1.take(2):',rdd1.take(2))
+print('rdd1.first():',rdd1.first())
+print('rdd1.count():',rdd1.count())
+print('rdd1.top(2):',rdd1.top(2))
+print('rdd1.takeOrdered(1):',rdd1.takeOrdered(2))
+
+"""
+rdd1.collect(): [1, 2, 3, 4, 5, 6, 7, 8, 9]
+rdd1.take(2): [1, 2]
+rdd1.first(): 1
+rdd1.count(): 9
+rdd1.top(2): [9, 8]
+rdd1.takeOrdered(1): [1,2]
+"""
+```
+
+| Action           | Description                                                           | Output (for this RDD) | Notes                                                |
+| ---------------- | --------------------------------------------------------------------- | --------------------- | ---------------------------------------------------- |
+| `collect()`      | Returns **all elements** from all partitions as a list.               | `[1,2,3,4,5,6,7,8,9]` | Brings all data to driver → avoid on huge RDDs       |
+| `take(2)`        | Returns **first 2 elements** from the RDD (based on partition order). | `[1, 2]`              | Reads just enough partitions to get 2 elements       |
+| `top(2)`         | Returns **2 largest elements**, in descending order.                  | `[9, 8]`              | Uses the default ordering (numeric or lexicographic) |
+| `first()`        | Returns **the first element** of the RDD.                             | `1`                   | Shortcut for `take(1)[0]`                            |
+| `count()`        | Returns the **number of elements** in the RDD.                        | `9`                   | Simple action that triggers computation              |
+| `takeOrdered(1)` | Returns **1 smallest element**, in ascending order.                   | `[1]`                 | Opposite of `top()`                                  |
 
 
 ## 4. Performance Optimization Basics
