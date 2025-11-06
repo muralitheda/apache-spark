@@ -265,7 +265,64 @@ rdd2 = spark.sparkContext.parallelize([3,4,5,6])
 distinct_union_rdd = rdd1.union(rdd2).distinct()
 print(distinct_union_rdd.collect()) # [1, 2, 3, 4, 5, 6]
 ```
-### Q8.
+### Q8. Key-Value Pair RDDs: Computation based on Keys
+        Transformation : mapValues(), flatMapValues()
+        Action         : reduceByKey()/aggregateByKey(), groupByKey(), sortByKey(), join()
+
+```python
+
+#1. mapValues()
+paired_rdd = spark.sparkContext.parallelize([("hr",10000),("mkt",20000),("hr",30000),("mkt",40000)])
+mapped_values_rdd = paired_rdd.mapValues(lambda val:val+100)
+print(mapped_values_rdd.collect())
+"""
+[('hr', 10100), ('mkt', 20100), ('hr', 30100), ('mkt', 40100)]
+"""
+
+#2. flatMapValues()
+paired_rdd = spark.sparkContext.parallelize([("hr",[10000,100]),("mkt",[20000,100]),("hr",[30000,100]),("mkt",[40000,100])])
+flat_mapped_values_rdd = paired_rdd.flatMapValues(lambda x:x)
+print(flat_mapped_values_rdd.collect())
+"""
+[('hr', 10000), ('hr', 100), ('mkt', 20000), ('mkt', 100), ('hr', 30000), ('hr', 100), ('mkt', 40000), ('mkt', 100)]
+"""
+flat_mapped_values_rdd = flat_mapped_values_rdd.mapValues(lambda val:val+100)
+print(flat_mapped_values_rdd.collect())
+"""
+[('hr', 10100), ('hr', 200), ('mkt', 20100), ('mkt', 200), ('hr', 30100), ('hr', 200), ('mkt', 40100), ('mkt', 200)]
+"""
+
+#1. reduceByKey()
+reduced_rdd = flat_mapped_values_rdd.reduceByKey(lambda mindvalue,fingervalue:mindvalue+fingervalue)
+print(reduced_rdd.collect())
+"""
+[('mkt', 60600), ('hr', 40600)]
+"""
+
+#2. groupByKey()
+grouped_rdd = flat_mapped_values_rdd.groupByKey().mapValues(lambda val:len(val))
+print(grouped_rdd.collect())
+"""
+[('mkt', 4), ('hr', 4)]
+"""
+
+#3. sortByKey()
+sorted_rdd = flat_mapped_values_rdd.sortByKey()
+print(sorted_rdd.collect())
+"""
+[('hr', 10100), ('hr', 200), ('hr', 30100), ('hr', 200), ('mkt', 20100), ('mkt', 200), ('mkt', 40100), ('mkt', 200)]
+"""
+
+#6. join()
+dept_sal_rdd = spark.sparkContext.parallelize((['hr',1000],['mkt',2000]))
+dept_emp_rdd = spark.sparkContext.parallelize((['hr','101,102,103'],['mkt','201,202,203,204']))
+dept_emp_sal_rdd = dept_emp_rdd.join(dept_sal_rdd)
+print(dept_emp_sal_rdd.collect())
+"""
+[('mkt', ('201,202,203,204', 2000)), ('hr', ('101,102,103', 1000))]
+"""
+```
+
 ### Q9.
 ### Q10.
 ### Q11.
