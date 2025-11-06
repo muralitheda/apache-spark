@@ -2,6 +2,24 @@
 
 ## 1. How to create SparkSession object creation & sparkContext reference?
 
+📁 Package structure (inside PySpark)
+
+A module = any single .py file that contains Python code.
+A package = a folder that contains an __init__.py file (and possibly several modules).
+
+Here’s a simplified version of how pyspark.sql looks internally:
+```markdown
+pyspark/               ← Package because it has (__init__.py) file
+│
+├── __init__.py            
+└── sql/               ← Package because it has (__init__.py) file 
+    ├── __init__.py    
+    ├── session.py     ← this is a module
+    ├── dataframe.py
+    ├── functions.py
+    └── ...
+```
+
 ```
 SparkSession is the entry point for accessing the mypyspark cluster operation.
 SparkSession object will instantiate SparkContex, SqlContext, HiveContext Objects.
@@ -324,7 +342,20 @@ print(dept_emp_sal_rdd.collect())
 ```
 
 
-### Q9.
+### Q9. Q7: Write a word count program using mypyspark core? How to identify the occurance of the given words in a unstructured dataset?
+
+```python
+"""
+#coursedata.txt
+Python Cloud AI Docker Kubernetes Rust
+
+Docker Java JavaScript React Spark Kafka SQL Git Go Python AI
+
+AWS Azure TensorFlow PyTorch Android iOS Rust AI
+"""
+
+
+```
 
 ### Q10.
 ### Q11.
