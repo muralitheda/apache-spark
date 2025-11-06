@@ -342,7 +342,7 @@ print(dept_emp_sal_rdd.collect())
 ```
 
 
-### Q9. Write a word count program using mypyspark core? How to identify the occurance of the given words in a unstructured dataset?
+### Q9. Write a word count program using pyspark core? How to identify the occurance of the given words in a unstructured dataset?
 
 ```python
 """
@@ -369,7 +369,61 @@ print(words_count_rdd.collect())
 
 ```
 
-### Q10.
+### Q10. Write a production ready word count program using pyspark?
+
+```python
+
+#Standard Spark Application
+#FileName: practice_program_core_words_count.py
+
+"""
+copy the below program and save it as practice_program_core_words_count.py
+input file path      => file:///home/hduser/coursedata.txt
+Spark Submit Command => mypyspark-submit --master yarn --deploy-mode cluster practice_program_core_words_count.py file:///home/hduser/coursedata.txt file:///home/hduser/sparkprogram/010304
+"""
+
+from pyspark.sql.session import SparkSession
+import sys
+import datetime
+
+def cnt(rdd):
+    return rdd.count()
+
+def add_counts(a,b):
+    return a + b
+
+def main(arg1,arg2):
+    file_rdd1 = spark.sparkContext.textFile(arg1)
+    file_reduced_rdd = file_rdd1.filter(lambda x: len(x) > 0)
+    print(cnt(file_reduced_rdd))
+    flatten_rdd = file_reduced_rdd.flatMap(lambda row: row.split(" "))
+    filter_flatten_rdd = flatten_rdd.filter(lambda value: value != 'Java')
+
+    total_words = filter_flatten_rdd.map(lambda word:1).reduce(add_counts)
+    print("Total number of words (excluding Java) using reduce:",total_words)
+
+    paired_rdd = filter_flatten_rdd.map(lambda word: [word, 1])
+    reduced_pair_rdd = paired_rdd.reduceByKey(lambda mindvalue, keyvalue: mindvalue + keyvalue)
+    print('reduced_pair_rdd.collect()', reduced_pair_rdd.collect())
+    print('reduced_pair_rdd.count():',reduced_pair_rdd.count())
+    print('reduced_pair_rdd.take(3)',reduced_pair_rdd.take(3))
+    print('reduced_pair_rdd.first()', reduced_pair_rdd.first())
+    print('reduced_pair_rdd.saveAsTextFile()',arg2)
+    reduced_pair_rdd.saveAsTextFile(arg2)
+
+if __name__ == '__main__':
+    spark = SparkSession.builder.getOrCreate()
+    if len(sys.argv) < 3 :
+        print('[WARNING]Input/Output file path is not given. So selecting default path')
+        formatted_time= datetime.datetime.now().strftime("%H%M%S")
+        input_path  =  'file:///home/hduser/coursedata.txt'
+        output_path =  'file:///home/hduser/sparkprogram/'+formatted_time
+        main(input_path,output_path)
+    else:
+        main(sys.argv[1],sys.argv[2])
+
+```
+
 ### Q11.
 ### Q12.
 
