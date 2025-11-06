@@ -323,7 +323,9 @@ print(dept_emp_sal_rdd.collect())
 """
 ```
 
+
 ### Q9.
+
 ### Q10.
 ### Q11.
 ### Q12.
