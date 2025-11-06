@@ -4,10 +4,10 @@
 
 **📁 Package structure (inside PySpark)**
 
-    A module = any single .py file that contains Python code.
-    A package = a folder that contains an __init__.py file (and possibly several modules).
+    A module = any single `.py` file that contains Python code.
+    A package = a folder that contains an `__init__.py` file (and possibly several modules).
 
-**Here’s a simplified version of how pyspark.sql looks internally:**
+**Here’s a simplified version of how `pyspark.sql` looks internally:**
 ```markdown
 pyspark/               ← Package because it has (__init__.py) file
 │
