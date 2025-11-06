@@ -341,8 +341,66 @@ print(dept_emp_sal_rdd.collect())
 """
 ```
 
+### Q9. How to materialize Actions in RDDs?
+        - Action is an RDD function/method used to return the result/value to the driver or the storage layer
+        - Collect() action used to collect the rdd elements as a result to the driver from executors.
 
-### Q9. Write a word count program using pyspark core? How to identify the occurance of the given words in a unstructured dataset?
+```python
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+rdd1 = spark.sparkContext.parallelize(range(1,10),2)
+print('rdd1.collect():',rdd1.collect())
+print('rdd1.take(2):',rdd1.take(2))
+print('rdd1.first():',rdd1.first())
+print('rdd1.count():',rdd1.count())
+print('rdd1.top(2):',rdd1.top(2))
+print('rdd1.takeOrdered(1):',rdd1.takeOrdered(2))
+
+"""
+rdd1.collect(): [1, 2, 3, 4, 5, 6, 7, 8, 9]
+rdd1.take(2): [1, 2]
+rdd1.first(): 1
+rdd1.count(): 9
+rdd1.top(2): [9, 8]
+rdd1.takeOrdered(1): [1,2]
+"""
+```
+
+| Action           | Description                                                           | Output (for this RDD) | Notes                                                |
+| ---------------- | --------------------------------------------------------------------- | --------------------- | ---------------------------------------------------- |
+| `collect()`      | Returns **all elements** from all partitions as a list.               | `[1,2,3,4,5,6,7,8,9]` | Brings all data to driver → avoid on huge RDDs       |
+| `take(2)`        | Returns **first 2 elements** from the RDD (based on partition order). | `[1, 2]`              | Reads just enough partitions to get 2 elements       |
+| `top(2)`         | Returns **2 largest elements**, in descending order.                  | `[9, 8]`              | Uses the default ordering (numeric or lexicographic) |
+| `first()`        | Returns **the first element** of the RDD.                             | `1`                   | Shortcut for `take(1)[0]`                            |
+| `count()`        | Returns the **number of elements** in the RDD.                        | `9`                   | Simple action that triggers computation              |
+| `takeOrdered(1)` | Returns **1 smallest element**, in ascending order.                   | `[1]`                 | Opposite of `top()`                                  |
+
+### Q10. Collect() Action has to be carefully used or avoid using. Why?
+        1. Collect brings all data from multiple executor to one driver, hence resource consumption like network and memory are high.
+        2. Collect may reduce the performance of the application when used on the large volumne of the data.
+        3. Collect may break the application with OOM exception when used on the large volumne of the data.
+        4. Alternative for collect() - sampling, storage in disk, take(2), first(), top(2), count() ...
+        5. Conclusion: collect() should be used for development, testing or in production (if it is inevitable) 
+
+
+### Q11. reduce() vs reduceByKey() Actions?
+        - reduce() action help us reduce/consoildate/combine the result in any customized way needed the result
+        - reduceByKey() is an action, this function will help us apply aggregation operation on the mapped/direct data
+
+```python
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+rdd = spark.sparkContext.parallelize([10000,20000,10000,20000])
+print('sum overall salary:',rdd.reduce(lambda mind,finger:mind+finger)) # 60000
+
+paired_rdd = spark.sparkContext.parallelize([['hr',10000], ['mkt',20000], ['hr',10000],['mkt',20000]])
+print('dept wise salary:',paired_rdd.reduceByKey(lambda mind,finger:mind+finger).collect()) # [('mkt', 40000), ('hr', 20000)]
+```
+
+
+### Q12. Write a word count program using pyspark core? How to identify the occurance of the given words in a unstructured dataset?
 
 ```python
 """
@@ -369,7 +427,7 @@ print(words_count_rdd.collect())
 
 ```
 
-### Q10. Write a production ready word count program using pyspark?
+### Q13. Write a production ready word count program using pyspark?
 
 ```python
 
@@ -433,7 +491,7 @@ reduced_pair_rdd.saveAsTextFile() file:///home/hduser/sparkprogram/210427
 """
 ```
 
-### Q11. What are all we learn out of this exercise?
+### Q14. What are all we learn out of this exercise?
         1. 40% of the Spark concepts are covered.
         2. All Spark Core Concepts: 
                 - SparkSession,
@@ -463,41 +521,6 @@ reduced_pair_rdd.saveAsTextFile() file:///home/hduser/sparkprogram/210427
                 - Job(Spark Application)
                 - Horizontal Tasks (Partitions)
                 - Vertical Stages (Shuffling happens)
-
-### Q12. How to materialize Actions in RDDs?
-        - Action is an RDD function/method used to return the result/value to the driver or the storage layer
-        - Collect() action used to collect the rdd elements as a result to the driver from executors.
-
-```python
-from pyspark.sql import SparkSession
-spark = SparkSession.builder.getOrCreate()
-
-rdd1 = spark.sparkContext.parallelize(range(1,10),2)
-print('rdd1.collect():',rdd1.collect())
-print('rdd1.take(2):',rdd1.take(2))
-print('rdd1.first():',rdd1.first())
-print('rdd1.count():',rdd1.count())
-print('rdd1.top(2):',rdd1.top(2))
-print('rdd1.takeOrdered(1):',rdd1.takeOrdered(2))
-
-"""
-rdd1.collect(): [1, 2, 3, 4, 5, 6, 7, 8, 9]
-rdd1.take(2): [1, 2]
-rdd1.first(): 1
-rdd1.count(): 9
-rdd1.top(2): [9, 8]
-rdd1.takeOrdered(1): [1,2]
-"""
-```
-
-| Action           | Description                                                           | Output (for this RDD) | Notes                                                |
-| ---------------- | --------------------------------------------------------------------- | --------------------- | ---------------------------------------------------- |
-| `collect()`      | Returns **all elements** from all partitions as a list.               | `[1,2,3,4,5,6,7,8,9]` | Brings all data to driver → avoid on huge RDDs       |
-| `take(2)`        | Returns **first 2 elements** from the RDD (based on partition order). | `[1, 2]`              | Reads just enough partitions to get 2 elements       |
-| `top(2)`         | Returns **2 largest elements**, in descending order.                  | `[9, 8]`              | Uses the default ordering (numeric or lexicographic) |
-| `first()`        | Returns **the first element** of the RDD.                             | `1`                   | Shortcut for `take(1)[0]`                            |
-| `count()`        | Returns the **number of elements** in the RDD.                        | `9`                   | Simple action that triggers computation              |
-| `takeOrdered(1)` | Returns **1 smallest element**, in ascending order.                   | `[1]`                 | Opposite of `top()`                                  |
 
 
 ## 4. Performance Optimization Basics
