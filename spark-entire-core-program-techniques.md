@@ -354,6 +354,18 @@ Docker Java JavaScript React Spark Kafka SQL Git Go Python AI
 AWS Azure TensorFlow PyTorch Android iOS Rust AI
 """
 
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+file_rdd = spark.sparkContext.textFile("file:///home/hduser/coursedata.txt")
+words_rdd = file_rdd.flatMap(lambda x:x.split(" "))
+words_pair_rdd = words_rdd.map(lambda x: (x,1))
+words_count_rdd = words_pair_rdd.reduceByKey(lambda mind,finger:mind+finger).sortByKey()
+print(words_count_rdd.collect())
+
+"""
+[('', 2), ('AI', 3), ('AWS', 1), ('Android', 1), ('Azure', 1), ('Cloud', 1), ('Docker', 2), ('Git', 1), ('Go', 1), ('Java', 1), ('JavaScript', 1), ('Kafka', 1), ('Kubernetes', 1), ('PyTorch', 1), ('Python', 2), ('React', 1), ('Rust', 2), ('SQL', 1), ('Spark', 1), ('TensorFlow', 1), ('iOS', 1)]
+"""
 
 ```
 
