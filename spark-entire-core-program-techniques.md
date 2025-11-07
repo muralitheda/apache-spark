@@ -595,26 +595,26 @@ from pyspark.sql import SparkSession
 spark = SparkSession.builder.getOrCreate()
 sc = spark.sparkContext
 
-file32mb_rdd1 =  sc.parallelize('file:///home/hduser/txns') # organically <32mb then default = 2
+file32mb_rdd1 =  sc.textFile('file:///home/hduser/txns') # organically <32mb then default = 2
 print('file32mb_rdd1.getNumPartitions():',file32mb_rdd1.getNumPartitions())
 
-file32mb_rdd1 =  sc.parallelize('file:///home/hduser/txns',1) # customized (override the default with any number if it is less than <32. otherwise higher number is required)
+file32mb_rdd1 =  sc.textFile('file:///home/hduser/txns',1) # customized (override the default with any number if it is less than <32. otherwise higher number is required)
 print('file32mb_rdd1.getNumPartitions():',file32mb_rdd1.getNumPartitions())
 
-file32mb_rdd1 =  sc.parallelize('file:///home/hduser/txns',4) # customized (override the default with any number if it is less than <32. otherwise higher number is required)
+file32mb_rdd1 =  sc.textFile('file:///home/hduser/txns',4) # customized (override the default with any number if it is less than <32. otherwise higher number is required)
 print('file32mb_rdd1.getNumPartitions():',file32mb_rdd1.getNumPartitions())
 
-file202mb_rdd1 =  sc.parallelize('file:///home/hduser/txns_233mb') # organically >32mb so 202mb/32mb = 7 partitions will be created by default
+file202mb_rdd1 =  sc.textFile('file:///home/hduser/txns_233mb') # organically >32mb so 202mb/32mb = 7 partitions will be created by default
 print('file202mb_rdd1.getNumPartitions():',file202mb_rdd1.getNumPartitions())
 
-file1gb_rdd1 =  sc.parallelize('file:///home/hduser/txns_1gb') # organically >32mb so 1024mb/32mb = 32 partitions will be created by default
+file1gb_rdd1 =  sc.textFile('file:///home/hduser/txns_1gb') # organically >32mb so 1024mb/32mb = 32 partitions will be created by default
 print('file1gb_rdd1.getNumPartitions():',file1gb_rdd1.getNumPartitions())
 
-file1gb_rdd1 =  sc.parallelize('file:///home/hduser/txns_1gb',1) #if i give <32, it will not considered. so the only option is coalesce() to reduce the number of partitions
+file1gb_rdd1 =  sc.textFile('file:///home/hduser/txns_1gb',1) #if i give <32, it will not considered. so the only option is coalesce() to reduce the number of partitions
 print('file1gb_rdd1.getNumPartitions():',file1gb_rdd1.getNumPartitions())
 
 #Still i need to restrict to 4 partitions
-file1gb_rdd1 =  sc.parallelize('file:///home/hduser/txns_1gb').coalesce(4)
+file1gb_rdd1 =  sc.textFile('file:///home/hduser/txns_1gb').coalesce(4)
 print('file1gb_rdd1.getNumPartitions():',file1gb_rdd1.getNumPartitions())
 
 # conclusion: local files rdds will go with default 2 partitions if size <32mb
@@ -622,12 +622,12 @@ print('file1gb_rdd1.getNumPartitions():',file1gb_rdd1.getNumPartitions())
 # we can override with the argument > number of partitions returned
 
 """
-file32mb_rdd1.getNumPartitions(): 5
+file32mb_rdd1.getNumPartitions(): 2
 file32mb_rdd1.getNumPartitions(): 1
 file32mb_rdd1.getNumPartitions(): 4
-file202mb_rdd1.getNumPartitions(): 5
-file1gb_rdd1.getNumPartitions(): 5
-file1gb_rdd1.getNumPartitions(): 1
+file202mb_rdd1.getNumPartitions(): 7
+file1gb_rdd1.getNumPartitions(): 38
+file1gb_rdd1.getNumPartitions(): 38
 file1gb_rdd1.getNumPartitions(): 4
 """
 
