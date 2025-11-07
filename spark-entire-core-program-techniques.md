@@ -682,15 +682,55 @@ file1gb_rdd1.getNumPartitions(): 10
 file1gb_rdd1.getNumPartitions(): 14385600
 """
 ```
-
 ✅ In short:  
 `coalesce(1)` works on a `1 GB` file because Spark reads and processes it in chunks `(not all in memory)`,  
 but `it’s not efficient` — it `removes parallelism and increases risk of memory pressure`.
 
 ### 5. When the partitions can be increased or decreased in an RDD? 
-         -  Scenario 1 # Increase it before performing the transformation(flatmap)     => repartition()
+         -  Scenario 1 # Increase it before performing the wide transformation(flatmap)     => repartition()
          -  Scenario 2 # Decrease it after performing the transformation (filter)      => coalesce()
-         -  Scenario 3 # Decrease it before performation the transformation(map)       => coalesce()
+         -  Scenario 3 # Decrease it before performation the narrow transformation(map)       => coalesce()
+
+| **Scenario**                                                                                 | **When**                                                             | **What to Use** | **Why**                                                                                                      |
+| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------ |
+| **1. Increase partitions before a wide transformation** (e.g., `flatMap`, `join`, `groupBy`) | Before heavy transformations that expand data                        | `repartition()` | It performs a **full shuffle**, ensuring balanced data distribution across executors for better parallelism. |
+| **2. Decrease partitions after a filter (data shrinks)**                                     | After filtering or aggregation (less data to process)                | `coalesce()`    | Merges partitions **without shuffle** — cheaper and efficient since data size reduced.                       |
+| **3. Decrease partitions before a narrow transformation (like `map`)**                       | Only if you’re sure of smaller data and want to reduce task overhead | `coalesce()`    | Safe because `map` is a narrow transformation and doesn’t need shuffle. Helps avoid too many small tasks.    |
+
+✅ Summary
+`repartition()` → `uses shuffle`, better load balancing (used before expansion)
+`coalesce()` → `no shuffle`, efficient (used after or before simple narrow ops)
+
+```python
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
+sc = spark.sparkContext
+
+# Scenario 1 — Increase before expansion
+rdd1 = sc.textFile("file:///home/hduser/txns_1gb")
+rdd1 = rdd1.repartition(10)  # Increase partitions
+rdd1 = rdd1.flatMap(lambda x: x.split(","))
+print('rdd1.count():',rdd1.count(),"rdd1.getNumPartitions():",rdd1.getNumPartitions())
+
+# Scenario 2 — Decrease after filtering
+rdd1 = sc.textFile("file:///home/hduser/txns_1gb")
+filtered_rdd = rdd1.filter(lambda x: "Team Sports" in x)
+filtered_rdd = filtered_rdd.coalesce(2)  # Reduce partitions
+print('filtered_rdd.count():',filtered_rdd.count(),"filtered_rdd.getNumPartitions():",filtered_rdd.getNumPartitions())
+
+# Scenario 3 — Decrease before a simple map
+rdd1 = sc.textFile("file:///home/hduser/txns")
+rdd1 = rdd1.coalesce(1)  # Reduce partitions
+rdd1 = rdd1.map(lambda x: x.upper())
+print('rdd1.count():',rdd1.count(),"rdd1.getNumPartitions():",rdd1.getNumPartitions())
+
+"""
+rdd1.count(): 129470400 rdd1.getNumPartitions(): 10
+filtered_rdd.count(): 1734750 filtered_rdd.getNumPartitions(): 2
+rdd1.count(): 95904 rdd1.getNumPartitions(): 1
+"""
+```
 
 ### 6. Before we run an action, can we change the number of partitions? 
             yes
