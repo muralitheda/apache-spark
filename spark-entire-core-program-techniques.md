@@ -701,6 +701,12 @@ but `it’s not efficient` — it `removes parallelism and increases risk of mem
 `repartition()` → `uses shuffle`, better load balancing (used before expansion)
 `coalesce()` → `no shuffle`, efficient (used after or before simple narrow ops)
 
+### 6. Before we run an action, can we change the number of partitions? 
+            yes
+
+### 7. How many files will be generated? 
+            No of files = No of Partitions
+
 ```python
 
 from pyspark.sql import SparkSession
@@ -731,12 +737,6 @@ filtered_rdd.count(): 1734750 filtered_rdd.getNumPartitions(): 2
 rdd1.count(): 95904 rdd1.getNumPartitions(): 1
 """
 ```
-
-### 6. Before we run an action, can we change the number of partitions? 
-            yes
-
-### 7. How many files will be generated? 
-            No of files = No of Partitions
 
 ### 8. Memory Optimization - using Cache()/Persist() once RDD is created
             - cache() & persist(diffierent StorageLevel's) - transformations are used to ask GC, not to purge the data from Executor memory
