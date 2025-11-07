@@ -542,7 +542,7 @@ reduced_pair_rdd.saveAsTextFile() file:///home/hduser/sparkprogram/210427
             
             - How and all the partitions can be created/managed?
                 1. Partitions are defined when creating RDDs/DFs (Organically/Customized)
-                2. Increase it before performing Transformation, decrease it before performing Action
+                2. Increase it before performing Transformation, decrease it after transformation and before performing Action
 
 ```python
 from pyspark.sql import SparkSession
