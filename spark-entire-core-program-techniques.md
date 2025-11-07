@@ -683,9 +683,9 @@ file1gb_rdd1.getNumPartitions(): 14385600
 """
 ```
 
-✅ In short:
-coalesce(1) works on a 1 GB file because Spark reads and processes it in chunks (not all in memory),
-but it’s not efficient — it removes parallelism and increases risk of memory pressure.
+✅ In short:  
+`coalesce(1)` works on a `1 GB` file because Spark reads and processes it in chunks `(not all in memory)`,  
+but `it’s not efficient` — it `removes parallelism and increases risk of memory pressure`.
 
 ### 5. When the partitions can be increased or decreased in an RDD? 
          -  Scenario 1 # Increase it before performing the transformation(flatmap)     => repartition()
