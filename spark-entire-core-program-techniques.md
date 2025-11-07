@@ -788,5 +788,17 @@ rdd1.map(lambda x:x+broadcasted_bonus_worker.value).collect() # executor / worke
             - Accumulator used in Spark framework for creating job counters.
             - Example: logging/task completition percent/number of tasks completed.
 
+**Example:**
+```python
+from pyspark.sql import SparkSession
+sc = SparkSession.sparkContext
+
+driver_err_cnt=0
+driver_accumlator_err_cnt = sc.accumulator(driver_err_cnt)
+filerdd1= sc.textFile('file:///home/hduser/coursedata.txt')
+filerdd1.map(lambda x:driver_accumlator_err_cnt.add(1) if len(x)==0 else driver_accumlator_err_cnt.add(0)).collect()
+print('Total error rows are ',driver_accumlator_err_cnt)
+```
+
 ## 5. Main Program to covert all the Spark core programming concepts 
 
