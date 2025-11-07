@@ -753,6 +753,18 @@ rdd1.count(): 95904 rdd1.getNumPartitions(): 1
             - Hence Spark RDD/DF partitions rows can refer that broadcasted variable locally rather than getting it from the driver for every iteration
             - How much rows a rdd or variable can be broadcasted? default is 10mb.
 
+Example:
+```python
+from pyspark.sql import SparkSession
+sc = SparkSession.sparkContext
+
+bonus_driver=1000
+broadcasted_bonus_worker = sc.broadcast(bonus_driver)
+rdd1=sc.parallelize([10000,20000,150000,250000,17000])
+rdd1.map(lambda x:x+bonus_driver).collect()                   # executor / worker going to pull the bonus_driver variable 5 times from the pyspark driver
+rdd1.map(lambda x:x+broadcasted_bonus_worker.value).collect() # executor / worker going to pull the value only once from the pyspark driver
+```
+
 ### 10. Accumulator:
             - Accumulator is special incremental variable used for accumulating the number of tasks performed by the executors.
             - Accumulator is used to identify the progress completion of tasks running in the respective executors.
