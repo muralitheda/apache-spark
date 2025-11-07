@@ -31,6 +31,7 @@ SparkSession object will instantiate SparkContex, SqlContext, HiveContext Object
            |__getOrCreate()            => method to create a new SparkSession object or referring to existing SparkSession
 ```
 
+**Example:**
 ```python
 # Imports 
 from pyspark.sql.session import SparkSession
@@ -66,6 +67,7 @@ hiveContext:<pyspark.sql.context.HiveContext object at 0xffff676fffa0>
 ### Q1. Can we have more than SparkContext in a same application? 
 ✅ **Ans:**  Only one active SparkContext is allowed per `application`. Creating more causes an error. Use multiple SparkSessions instead—they share the same SparkContext.
 
+**Example:**
 ```python
 from pyspark.sql import SparkSession
 
@@ -107,6 +109,7 @@ print("spark1.sparkContext is spark3.sparkContext:",spark1.sparkContext is spark
     3. RDDs/DFs from another RDD/DF
     4. RDD/DF from memory 
 
+**Example:**
 ```python
 """
 download the csv dataset "custs" to linux and copy it to hdfs
@@ -144,6 +147,7 @@ print(f"revised_salary_rdd2.collect():{revised_salary_rdd2.collect()}") # [25100
         Transformation:  If a function/method returns another RDD.   Operations => map(), flatMap(), filter(), distinct(), union()
         Action        :  If a function/method returns RESULT(VALUE). Operations => collect(), count(), take(3), reduce(), saveAsTextFile()
 
+**Example:**
 ```python
 rdd1 = spark.sparkContext.parallelize([20000,30000,15000,40000,50000],2)
 rdd2 = rdd1.map(lambda sal:sal+1000) #Transformation (MAP returns another RDD)
@@ -153,6 +157,8 @@ print(rdd2.count())                  #Action (COUNT trigers computation and retu
 ### Q2. What are types of Transformation?
         Active:  If the output number of elements of a given RDD is different from the input number of element of an RDD.
         Passive: If the output number of elements of a given RDD is same      from the input number of element of an RDD.
+
+**Example:**
 ```python
 """
 #/home/hduser/custs
@@ -206,6 +212,7 @@ print(rdd2.top(5))
     SGD
     INR
 
+**Example:**
 ```python
 
 #Structured data :: Flatting
@@ -258,6 +265,7 @@ print(flatmap_rdd1.collect())
     #Filter is like a for/while loop with if condition but it is distributed & parallel function that can run on rdd partitions concurrently.
     #SQL side example: select statement with a where clause.
 
+**Example:**
 ```python
 
 filter_func1 = lambda row: 'GCP' in row.upper()
@@ -277,6 +285,7 @@ print(filter_rdd2.collect())
 
 ### Q7. `distinct()` & `union()` transformation functions.
 
+**Example:**
 ```python
 rdd1 = spark.sparkContext.parallelize([1,2,3,4])
 rdd2 = spark.sparkContext.parallelize([3,4,5,6])
@@ -287,6 +296,7 @@ print(distinct_union_rdd.collect()) # [1, 2, 3, 4, 5, 6]
         Transformation : mapValues(), flatMapValues()
         Action         : reduceByKey()/aggregateByKey(), groupByKey(), sortByKey(), join()
 
+**Example:**
 ```python
 
 #1. mapValues()
@@ -345,6 +355,7 @@ print(dept_emp_sal_rdd.collect())
         - Action is an RDD function/method used to return the result/value to the driver or the storage layer
         - Collect() action used to collect the rdd elements as a result to the driver from executors.
 
+**Example:**
 ```python
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.getOrCreate()
@@ -388,6 +399,7 @@ rdd1.takeOrdered(1): [1,2]
         - reduce() action help us reduce/consoildate/combine the result in any customized way needed the result
         - reduceByKey() is an action, this function will help us apply aggregation operation on the mapped/direct data
 
+**Example:**
 ```python
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.getOrCreate()
@@ -402,6 +414,7 @@ print('dept wise salary:',paired_rdd.reduceByKey(lambda mind,finger:mind+finger)
 
 ### Q12. Write a word count program using pyspark core? How to identify the occurance of the given words in a unstructured dataset?
 
+**Example:**
 ```python
 """
 #coursedata.txt
@@ -429,6 +442,7 @@ print(words_count_rdd.collect())
 
 ### Q13. Write a production ready word count program using pyspark?
 
+**Example:**
 ```python
 
 #Standard Spark Application
@@ -544,6 +558,7 @@ reduced_pair_rdd.saveAsTextFile() file:///home/hduser/sparkprogram/210427
                 1. Partitions are defined when creating RDDs/DFs (Organically/Customized)
                 2. Increase it before performing Transformation, decrease it after transformation and before performing Action
 
+**Example:**
 ```python
 from pyspark.sql import SparkSession
 spark = SparkSession.builder.getOrCreate()
@@ -581,7 +596,8 @@ rdd5.coalesce(1).saveAsTextFile("file:///home/hduser/filterdata/"+onltyime) # Re
                              - range of values in a given partitioning or data size is random/difference in diff paritition
             - repartition()  - transformation help us to increase the number of partitions (internally coalesce(shuffle=True))
                              - round robin partitioning. equal distribution between partitioning using shuffle
-        
+
+**Example:**        
 ```python
 # 1. When RDDs are created from local file system? 1 partition = 32mb size
 '''
@@ -633,7 +649,7 @@ file1gb_rdd1.getNumPartitions(): 4
 
 ```
 
-
+**Example:**
 ```python
 
 # 2. When RDDs are created from HDFS file system? 1 partition = 128mb size
@@ -707,6 +723,7 @@ but `it’s not efficient` — it `removes parallelism and increases risk of mem
 ### 7. How many files will be generated? 
             No of files = No of Partitions
 
+**Example:**
 ```python
 
 from pyspark.sql import SparkSession
@@ -753,7 +770,7 @@ rdd1.count(): 95904 rdd1.getNumPartitions(): 1
             - Hence Spark RDD/DF partitions rows can refer that broadcasted variable locally rather than getting it from the driver for every iteration
             - How much rows a rdd or variable can be broadcasted? default is 10mb.
 
-Example:
+**Example:**
 ```python
 from pyspark.sql import SparkSession
 sc = SparkSession.sparkContext
