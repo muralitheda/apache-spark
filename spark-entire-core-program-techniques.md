@@ -800,5 +800,90 @@ filerdd1.map(lambda x:driver_accumlator_err_cnt.add(1) if len(x)==0 else driver_
 print('Total error rows are ',driver_accumlator_err_cnt)
 ```
 
-## 5. Main Program to covert all the Spark core programming concepts 
+## 5. Main Program to covert all the Spark core programming concepts
 
+Example:
+```python
+"""
+mypyspark-submit --master yarn --deploy-mode client --num-executors 2 --executor-memory 1g --driver-memory 1g spark_core_app.py file:///home/hduser/samplecourse.log /user/hduser/sparkoutput35
+"""
+from pyspark.sql.session import SparkSession
+import datetime
+
+def main(arg):
+    """
+    This function processes a text file using PySpark.
+
+    Args:
+        arg (str): The path to the text file.
+    """
+    # 4 cores of processors in the mypyspark application
+    # Optimized application with removing unwanted actions and partitioning applied
+    
+    filerdd1 = spark.sparkContext.textFile(arg)
+
+    occurances = 1
+    broadcast_occurance = spark.sparkContext.broadcast(occurances)
+
+    error_cnt = 0
+    accumulate_error_cnt = spark.sparkContext.accumulator(error_cnt)
+
+    filerdd1.map(
+        lambda x: accumulate_error_cnt.add(1)
+        if len(x) == 0
+        else accumulate_error_cnt.add(0)
+    ).count()
+
+    print("Driver side- total error rows are ", accumulate_error_cnt)
+
+    # Filter out empty rows
+    filteredrdd2 = filerdd1.filter(
+        lambda x: len(x) > 0
+    )
+
+    # Increase the number of partitions to 4
+    increased_partition_rdd2 = filteredrdd2.repartition(4)
+    increased_partition_rdd2.cache()  # Apply any persist options accordingly
+
+    flatmaprdd3 = increased_partition_rdd2.flatMap(
+        lambda mappedrow: mappedrow.split(" ")
+    )
+
+    filterflatmappedrdd4 = flatmaprdd3.filter(
+        lambda x: x == "mypyspark"
+    )
+
+    # Decrease the number of partitions to 2
+    reduced_partition_rdd2 = filteredrdd2.coalesce(2)
+
+    pairedrdd_map5 = reduced_partition_rdd2.map(
+        lambda word: [word, broadcast_occurance.value]
+    )
+
+    reduced_rdd6 = pairedrdd_map5.reduceByKey(lambda mind, finger: mind + finger)
+
+    # Use a lean action to get a portion of the result to the driver
+    print(reduced_rdd6.take(5))
+
+    now = datetime.datetime.now()
+    timestamp = now.strftime('%H%M%S')
+    
+    # Save the result to HDFS
+    reduced_rdd6.coalesce(1).saveAsTextFile("hdfs:///user/hduser/data/" + timestamp)
+
+    increased_partition_rdd2.unpersist()  # Unpersist RDD; not mandatory in this application
+    
+    print("40% of Spark I have learned/experienced")
+
+
+if __name__ == "__main__":
+    spark = SparkSession.builder.appName("WE45").getOrCreate()
+    main('file:///home/hduser/samplecourse.log')
+    spark.stop()
+
+"""
+Driver side- total error rows are  104000
+[('AWS Azure TensorFlow PyTorch Android iOS Rust AI', 52000), ('Python Cloud AI Docker Kubernetes Rust', 52000), ('Docker Java JavaScript React Spark Kafka SQL Git Go Python AI', 52000)]
+40% of Spark I have learned/experienced
+"""
+```
