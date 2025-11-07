@@ -542,7 +542,32 @@ reduced_pair_rdd.saveAsTextFile() file:///home/hduser/sparkprogram/210427
             
             - How and all the partitions can be created/managed?
                 1. Partitions are defined when creating RDDs/DFs (Organically/Customized)
-                2. Before/After performing Transformation, Before performing Action
+                2. Increase it before performing Transformation, decrease it before performing Action
+
+```python
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+#1. Partitions are defined when creating RDDs/DFs (Organically/Customized)
+rdd1 = spark.sparkContext.parallelize(range(1,100000)) # Organically no of partitions = no of cores allocated
+print(f"rdd1.getNumPartitions():{rdd1.getNumPartitions()}") # 5
+
+rdd1 = spark.sparkContext.parallelize(range(1,100000),numSlices=4) # Customized no of partitions by passing arguments
+print(f"rdd1.getNumPartitions():{rdd1.getNumPartitions()}") # 4
+
+#2. Increase it Before performing Transformation, Decrease it after the Transformation and before Action
+rdd2 = rdd1.repartition(6) # Before perform Transformation so that computation will be distributed across the partition nodes
+rdd3 = rdd2.map(lambda x:x+10)
+rdd4 = rdd3.filter(lambda x: x> 90000)
+rdd5 = rdd4.coalesce(2) # Decrease it after the Transformation
+
+import datetime
+now = datetime.datetime.now()
+onltyime = now.strftime('%H%M%S')
+
+rdd5.coalesce(1).saveAsTextFile("file:///home/hduser/filterdata/"+onltyime) # Reduce the no of partitions before an Action.
+
+```
 
 ### 3. What is Partitioning?
             - Partitioning is horizontal devision of data
@@ -557,6 +582,10 @@ reduced_pair_rdd.saveAsTextFile() file:///home/hduser/sparkprogram/210427
             - repartition()  - transformation help us to increase the number of partitions (internally coalesce(shuffle=True))
                              - round robin partitioning. equal distribution between partitioning using shuffle
         
+```python
+
+```
+
 ### 5. When the partitions can be increased or decreased in an RDD? 
          -  Scenario 1 # Increase it before performing the transformation(flatmap)     => repartition()
          -  Scenario 2 # Decrease it after performing the transformation (filter)      => coalesce()
