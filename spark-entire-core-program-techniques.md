@@ -633,6 +633,60 @@ file1gb_rdd1.getNumPartitions(): 4
 
 ```
 
+
+```python
+
+# 2. When RDDs are created from HDFS file system? 1 partition = 128mb size
+'''
+du -kh  /home/hduser/txns*
+8.1M	/home/hduser/txns
+1.2G	/home/hduser/txns_1gb
+202M	/home/hduser/txns_233mb
+
+hadoop fs -put /home/hduser/txns* /user/hduser/
+'''
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
+sc = spark.sparkContext
+
+file128mb_rdd1 =  sc.textFile('hdfs:///user/hduser/txns') # organically <128mb then default = 2
+print('file128mb_rdd1.getNumPartitions():',file128mb_rdd1.getNumPartitions())
+
+file128mb_rdd1 =  sc.textFile('hdfs:///user/hduser/txns',1) # customized (override the default with any number if it is less than <128. otherwise higher number is required)
+print('file128mb_rdd1.getNumPartitions():',file128mb_rdd1.getNumPartitions())
+
+file128mb_rdd1 =  sc.textFile('hdfs:///user/hduser/txns',4) # customized (override the default with any number if it is less than <128. otherwise higher number is required)
+print('file128mb_rdd1.getNumPartitions():',file128mb_rdd1.getNumPartitions())
+
+file202mb_rdd1 =  sc.textFile('hdfs:///user/hduser/txns_233mb') # organically >128mb so 202mb/128 = 2 partitions will be created by default
+print('file202mb_rdd1.getNumPartitions():',file202mb_rdd1.getNumPartitions())
+
+file1gb_rdd1 =  sc.textFile('hdfs:///user/hduser/txns_1gb') # organically >128 so 1024mb/128b = 8 partitions will be created by default
+print('file1gb_rdd1.getNumPartitions():',file1gb_rdd1.getNumPartitions())
+
+file1gb_rdd1 =  sc.textFile('hdfs:///user/hduser/txns_1gb',1) #if i give <128, it will not considered. so the only option is coalesce() to reduce the number of partitions
+print('file1gb_rdd1.getNumPartitions():',file1gb_rdd1.getNumPartitions())
+
+#Still i need to restrict to 4 partitions
+file1gb_rdd1 =  sc.textFile('hdfs:///user/hduser/txns_1gb').coalesce(1)
+print('file1gb_rdd1.getNumPartitions():',file1gb_rdd1.count())
+
+"""
+file128mb_rdd1.getNumPartitions(): 2
+file128mb_rdd1.getNumPartitions(): 1
+file128mb_rdd1.getNumPartitions(): 4
+file202mb_rdd1.getNumPartitions(): 2
+file1gb_rdd1.getNumPartitions(): 10
+file1gb_rdd1.getNumPartitions(): 10
+file1gb_rdd1.getNumPartitions(): 14385600
+"""
+```
+
+✅ In short:
+coalesce(1) works on a 1 GB file because Spark reads and processes it in chunks (not all in memory),
+but it’s not efficient — it removes parallelism and increases risk of memory pressure.
+
 ### 5. When the partitions can be increased or decreased in an RDD? 
          -  Scenario 1 # Increase it before performing the transformation(flatmap)     => repartition()
          -  Scenario 2 # Decrease it after performing the transformation (filter)      => coalesce()
