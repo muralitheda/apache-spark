@@ -363,6 +363,170 @@ total 12
 
 ## 4. Reading a JSON data with various options
 
+```python
+from pyspark.sql.types import DecimalType,BooleanType,ArrayType,DateType,TimestampType
+
+# Data
+samplejson = """
+[
+  {
+    "id": 1,
+    "name": "Alice",
+    "age": 30,
+    "salary": 50000.50,
+    "isActive": true,
+    "comments": "This is a comment.",
+    "tags": ["A", "B"],
+    "address": {
+      "street": "123 Main St",
+      "city": "Anytown"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Bob",
+    "age": 25,
+    "salary": 45000.75,
+    "isActive": false,
+    "comments": "Another comment.",
+    "tags": ["C"],
+    "address": {
+      "street": "456 Oak Ave",
+      "city": "Otherville"
+    }
+  },
+  {
+    "id": 3,
+    "name": "Charlie",
+    "age": null,
+    "salary": null,
+    "isActive": true,
+    "comments": "Invalid JSON",
+    "tags": ["D", "E"]
+  },
+  {
+    "id": 4,
+    "name": "David",
+    "age": 40,
+    "salary": 60000.00,
+    "isActive": true,
+    "date_joined": "2023-01-15",
+    "timestamp_event": "2023-01-15 10:30:00.123"
+  },
+  {
+    "id": 5,
+    "name": "Eve",
+    "age": 35,
+    "salary": 55555.555,
+    "isActive": true,
+    "comments": "This has 'single quotes'.",
+    "field with space": "value"
+  },
+  {
+    "id": 6,
+    "name": "Frank",
+    "age": 28,
+    "salary": 12345.678,
+    "isActive": true,
+    "comments": "Escaped chars: \\n\\t\\r",
+    "tags": ["F"],
+    "decimal_val": 12345.678
+  },
+  {
+    "invalid":"invalid"
+  }  
+]
+"""
+
+# JSON file creation
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType,StructField,IntegerType,StringType
+
+import os
+spark=SparkSession.builder.getOrCreate()
+
+file_path = "/home/hduser/employe_json/sample.json"
+directory = os.path.dirname(file_path)
+os.makedirs(directory, exist_ok=True)
+with open("/home/hduser/employe_json/sample.json", "w") as f:
+    f.write(samplejson)
+
+# Define a custom schema
+custom_schema = StructType([
+    StructField("id", IntegerType(), True),
+    StructField("name", StringType(), True),
+    StructField("age", IntegerType(), True),
+    StructField("salary", DecimalType(10, 3), True),
+    StructField("isActive", BooleanType(), True),
+    StructField("comments", StringType(), True),
+    StructField("tags", ArrayType(StringType()), True),
+    StructField("address", StructType([
+        StructField("street", StringType(), True),
+        StructField("city", StringType(), True)
+    ])),
+    StructField("date_joined", DateType(), True),
+    StructField("timestamp_event", TimestampType(), True),
+    StructField("corrupted_record", StringType(), True),
+])
+
+# Read JSON with multiple options and inline comments
+df = spark.read.json(
+    path="file:///home/hduser/employe_json/",  # Specifies the location of the JSON file(s) to read.
+    schema=custom_schema,  # Defines a custom schema to avoid automatic inference.
+    primitivesAsString=False,  # Treats all primitive values (int, float, bool) as strings if True.
+    prefersDecimal=True,  # Infers floating-point numbers as DecimalType instead of DoubleType.
+    allowComments=True,  # Allows Java/C++ style comments (//, /* */) in JSON.
+    allowUnquotedFieldNames=True,  # Accepts JSON keys without double quotes.
+    allowSingleQuotes=True,  # Accepts single quotes for string values.
+    allowBackslashEscapingAnyCharacter=True,  # Allows any character to be escaped with a backslash.
+    mode="PERMISSIVE",  # Defines how to handle corrupt records (PERMISSIVE, DROPMALFORMED, FAILFAST).
+    columnNameOfCorruptRecord="corrupted_record",  # Stores malformed JSON strings in a specified column.
+    dateFormat="yyyy-MM-dd",  # Specifies the format for parsing date strings.
+    timestampFormat="yyyy-MM-dd HH:mm:ss.SSS",  # Specifies the format for parsing timestamp strings.
+    multiLine=True,  # Treats the entire file as a single JSON object (for pretty-printed or array JSON).
+    allowUnquotedControlChars=True,  # Allows control characters (e.g., \n, \t) to appear unquoted.
+    lineSep="\n",  # Defines a custom line separator between JSON records. If multiline=True then it is not required.
+    samplingRatio=1.0,  # Sets the fraction of data used for schema inference.
+    encoding="UTF-8",  # Specifies the character encoding (e.g., UTF-8, UTF-16).
+    locale="en-US",  # Sets the locale for parsing locale-sensitive data like dates.
+    pathGlobFilter="*.json",  # Filters files using glob patterns (e.g., *.json).
+    recursiveFileLookup=True  # Enables recursive search in subdirectories.
+)
+
+df.printSchema()
+df.show(truncate=False)
+```
+
+```python
+root
+ |-- id: integer (nullable = true)
+ |-- name: string (nullable = true)
+ |-- age: integer (nullable = true)
+ |-- salary: decimal(10,3) (nullable = true)
+ |-- isActive: boolean (nullable = true)
+ |-- comments: string (nullable = true)
+ |-- tags: array (nullable = true)
+ |    |-- element: string (containsNull = true)
+ |-- address: struct (nullable = true)
+ |    |-- street: string (nullable = true)
+ |    |-- city: string (nullable = true)
+ |-- date_joined: date (nullable = true)
+ |-- timestamp_event: timestamp (nullable = true)
+ |-- corrupted_record: string (nullable = true)
+
++----+-------+----+---------+--------+-------------------------+------+-------------------------+-----------+-----------------------+----------------+
+|id  |name   |age |salary   |isActive|comments                 |tags  |address                  |date_joined|timestamp_event        |corrupted_record|
++----+-------+----+---------+--------+-------------------------+------+-------------------------+-----------+-----------------------+----------------+
+|1   |Alice  |30  |50000.500|true    |This is a comment.       |[A, B]|{123 Main St, Anytown}   |NULL       |NULL                   |NULL            |
+|2   |Bob    |25  |45000.750|false   |Another comment.         |[C]   |{456 Oak Ave, Otherville}|NULL       |NULL                   |NULL            |
+|3   |Charlie|NULL|NULL     |true    |Invalid JSON             |[D, E]|NULL                     |NULL       |NULL                   |NULL            |
+|4   |David  |40  |60000.000|true    |NULL                     |NULL  |NULL                     |2023-01-15 |2023-01-15 10:30:00.123|NULL            |
+|5   |Eve    |35  |55555.555|true    |This has 'single quotes'.|NULL  |NULL                     |NULL       |NULL                   |NULL            |
+|6   |Frank  |28  |12345.678|true    |Escaped chars: \n\t\r    |[F]   |NULL                     |NULL       |NULL                   |NULL            |
+|NULL|NULL   |NULL|NULL     |NULL    |NULL                     |NULL  |NULL                     |NULL       |NULL                   |NULL            |
++----+-------+----+---------+--------+-------------------------+------+-------------------------+-----------+-----------------------+----------------+
+```
+
 ## 5. Reading a CSV data with various options
 
 ## 6. ORC & Parquet file formats for Performance Optimization
