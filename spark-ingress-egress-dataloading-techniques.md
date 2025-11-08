@@ -168,7 +168,7 @@ df2_db = spark.read.jdbc(url=url1,properties=dbproperties,table=table_query)
 df2_db.show(truncate=False,n=5)
 print("[INFO] Partition wise record count:",df2_db.rdd.glom().map(len).collect())
 ```
-```
+```python
 +-------+----------+---------+---+--------------------------+
 |custid |first_name|last_name|age|profession                |
 +-------+----------+---------+---+--------------------------+
