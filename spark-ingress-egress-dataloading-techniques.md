@@ -529,6 +529,72 @@ root
 
 ## 5. Reading a CSV data with various options
 
+```python
+from pyspark.sql import SparkSession
+from pyspark.sql.types import DoubleType, StructType,StructField,StringType,IntegerType,DateType,TimestampType
+import os
+
+spark = SparkSession.builder.getOrCreate()
+
+# Data
+data = """
+symbol,exchange,date,timestamp,price,volume
+AAPL,NYSE,2023-08-01,2023-08-01 09:30:00,195.25,1200000
+GOOGL,NYSE,2023-08-01,2023-08-01 09:30:00,2735.55,850000
+MSFT,NYSE,2023-08-01,2023-08-01 09:30:00,-1,950000
+TSLA,NYSE,2023-08-01,2023-08-01 09:30:00,Inf,1100000
+AMZN,NYSE,na,2023-08-01 09:30:00,134.25,na
+MSFK,NYSE,2023-08-01,2023-08-01 09:30,100.01,950000
+INVALID_ROW_WITHOUT_PROPER_FIELDS       
+"""
+
+# CSV file creation
+file_path = "/home/hduser/employe_csv/sample.csv"
+directory = os.path.dirname(file_path)
+os.makedirs(directory, exist_ok=True)
+with open(file_path, "w") as f:
+    f.write(data)
+
+# Define custom schema
+customschema = StructType([
+    StructField("symbol", StringType(), True),
+    StructField("exchange", StringType(), True),
+    StructField("date", DateType(), True),
+    StructField("timestamp", TimestampType(), True),
+    StructField("price", DoubleType(), True),
+    StructField("volume", IntegerType(), True),
+    StructField("corrupted_data", StringType(), True)
+])
+
+# Read CSV with various options
+df1 = spark.read.csv(
+    path="file:///home/hduser/employe_csv/sample.csv",
+    sep=',',  # Column separator used in the CSV file
+    header=True,  # First line of the file contains column headers
+    schema=customschema,  # Custom schema to define data types and structure
+    columnNameOfCorruptRecord='corrupted_data',  # Stores malformed rows in this column
+    encoding='UTF-8',  # Character encoding used to read the file
+    quote="'",  # Defines single quote as the string quoting character
+    comment='-',  # Lines starting with '-' are treated as comments and ignored
+    ignoreTrailingWhiteSpace=True,  # Trims trailing whitespace from fields
+    ignoreLeadingWhiteSpace=True,  # Trims leading whitespace from fields
+    nullValue='na',  # Treats 'na' as a null value
+    nanValue='-1',  # Treats '-1' as NaN (Not a Number)
+    positiveInf='Inf',  # Treats 'Inf' as positive infinity
+    dateFormat='yyyy-MM-dd',  # Format used to parse date fields
+    timestampFormat='yyyy-MM-dd HH:mm:ss',  # Format used to parse timestamp fields
+    maxColumns=40  # Maximum number of columns allowed in the file
+)
+
+# Show first 10 rows
+df1.show(10, False)
+
+print("[INFO] Corruputed Rows")
+# Cache and filter corrupted rows
+df2 = df1.cache().where("corrupted_data is not null")
+df2.show(10, False)  # Display malformed rows for RCA
+```
+
 ## 6. ORC & Parquet file formats for Performance Optimization
 
 ## 7. PySpark & Hive Integration : Data Ingestion and Table Creation
