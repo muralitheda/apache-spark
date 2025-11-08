@@ -46,7 +46,7 @@ df_view.show(5)
 
 ```
 
-```
+```python
 +----------------+
 |distinct_courses|
 +----------------+
@@ -110,7 +110,7 @@ df1.show(truncate=False,n=5)
 print(f"[INFO] df1.count() = {df1.count()}")
 ```
 
-```
+```python
 +-------+----------+---------+---+--------------------------+
 |custid |first_name|last_name|age|profession                |
 +-------+----------+---------+---+--------------------------+
