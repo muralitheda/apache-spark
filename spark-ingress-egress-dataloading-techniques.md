@@ -88,7 +88,7 @@ cd /home/hduser/custinfo.csv
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType
 
-spark = SparkSession.builder.getOrCreate()
+spark = SparkSession.builder.config("spark.jars.packages", "mysql:mysql-connector-java:8.0.22").getOrCreate()
 
 # Schema Definition
 custinfo_schema = StructType([\
@@ -108,7 +108,6 @@ df1 = spark.read.csv(\
 
 df1.show(truncate=False,n=5)
 print(f"[INFO] df1.count() = {df1.count()}")
-
 ```
 
 ```
@@ -125,6 +124,69 @@ only showing top 5 rows
 
 [INFO] df1.count() = 9999
 ```
+
+```python
+###### Write the data into MySql DB ######
+
+# JDBC Options
+url1='jdbc:mysql://127.0.0.1:3306/stocksdb?createDatabaseIfNotExist=true'
+dbproperties={'user':'root','password':'Root123$','driver':'com.mysql.cj.jdbc.Driver'}
+
+# Write into DB
+df1.write.jdbc(url=url1,properties=dbproperties,table="custinfo",mode="overwrite")
+print("[INFO] CSV file data write into MySQL DB is successful.")
+```
+
+```python
+###### Optimized way to read the data from any RDBMS DB using JDBC ######
+
+#Question: How to improve performance for JDBC?
+#partition, fetchsize, caching, pushdown optimization etc.,
+#partitionColumn:, numberOfPartitions:, upperBound:, lowerBound, predicates, fetchsize..
+
+# JDBC Options for performance optimization
+url1='jdbc:mysql://127.0.0.1:3306/stocksdb'
+dbproperties = {
+    'user': 'root',
+    'password': 'Root123$',
+    'driver': 'com.mysql.cj.jdbc.Driver',
+    # Performance optimization options (values as strings):
+    'partitionColumn': 'custid', # Column used to divide data into sections for parallel processing.
+    'lowerBound': '4000001',     # Minimum value for the partition column to start reading data.
+    'upperBound': '4009000',     # Maximum value for the partition column to start reading data.
+    'numPartitions': '3',
+    'pushDownPredicate': 'true', # Sends filters (WHERE clauses) to the database for early processing.
+    'pushDownAggregate': 'true', # Sends aggregations (SUM, COUNT) to the database for early processing.
+    'queryTimeout': '120',       # Maximum time (in seconds) a database query can run before timing out.
+    'fetchSize': '10',           # Number of rows retrieved from the database in each batch.
+    'isolationLevel': 'READ_COMMITTED' # Ensures only committed data is visible during a transaction.
+}
+
+# Read the data from RDBMS using query instead of direct table
+table_query = "(select * from stocksdb.custinfo order by custid) as tablename"
+df2_db = spark.read.jdbc(url=url1,properties=dbproperties,table=table_query)
+df2_db.show(truncate=False,n=5)
+```
+
+🔹 Spark JDBC Partitioning Example for UpperBound & LowerBound Calculation
+
+| Parameter / Step       | Description / Formula                         | Value / Example                                       |
+| ---------------------- | --------------------------------------------- | ----------------------------------------------------- |
+| **partitionColumn**    | Column used to divide data for parallel reads | `custid`                                              |
+| **lowerBound**         | Minimum value for the partition column        | `4000001`                                             |
+| **upperBound**         | Maximum value for the partition column        | `4009000`                                             |
+| **numPartitions**      | Number of parallel partitions (tasks)         | `3`                                                   |
+| **Formula for stride** | `(upperBound - lowerBound) / numPartitions`   | `(4009000 - 4000001) / 3 = 8999 / 3 = 2999.67 ≈ 2999` |
+| **Stride (approx)**    | Range of values per partition                 | `2999`                                                |
+
+🔹 Partition Details:
+
+| Partition No. | Start (inclusive) | End (exclusive) | WHERE Clause (applied on MySQL)          |
+| ------------- | ----------------- | --------------- | ---------------------------------------- |
+| 0             | 4000001           | 4003000         | `custid < 4003000`                       |
+| 1             | 4003000           | 4006000         | `custid >= 4003000 AND custid < 4006000` |
+| 2             | 4006000           | 4009000         | `custid >= 4006000`                      |
+
 
 ## 3. Schema Evoluation/Growing handling using columner file formats ORC/Parquet
 
