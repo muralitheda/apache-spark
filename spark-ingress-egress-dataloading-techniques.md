@@ -15,7 +15,7 @@ print(f"spark session:{spark}")
 
 ## 1. Converting Unstructured/Semi Structured Data into Structured Data using RDD then to DF
 
-### Case1: Users entered course data in Unstructured format. We would like to know the distinct number of course, which course mostly wanted?
+    Case1: Users entered course data in Unstructured format. We would like to know the distinct number of course, which course mostly wanted?
 
 ```python
 #Sample data => samplecourse.log
