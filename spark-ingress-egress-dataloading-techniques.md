@@ -74,6 +74,7 @@ only showing top 5 rows
 
 ```python
 ###### Reading CSV data and write into DataFrame #######
+
 # Sample Customer Info Data
 """
 cd /home/hduser/custinfo.csv
@@ -98,10 +99,18 @@ custinfo_schema = StructType([\
     , StructField('profession', StringType(), True)])
 
 # CSV Data Read and storing it in DataFrame
-df1 = spark.read.csv(path="file:///home/hduser/custinfo.csv",header=False,sep=",",inferSchema=False,schema=custinfo_schema)
+df1 = spark.read.csv(\
+    path="file:///home/hduser/custinfo.csv"\
+    ,header=False\
+    ,sep=","\
+    ,inferSchema=False\
+    ,schema=custinfo_schema)
+
 df1.show(truncate=False,n=5)
 print(f"[INFO] df1.count() = {df1.count()}")
+
 ```
+
 ```
 +-------+----------+---------+---+--------------------------+
 |custid |first_name|last_name|age|profession                |
