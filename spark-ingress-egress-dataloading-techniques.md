@@ -834,7 +834,7 @@ df1.show(5)
 # This method loads data into an existing table. It's less common for initial
 # table creation and data loading, as it does not create a new table schema.
 # ==============================================================================
-print("--- Method 2: Inserting data into an existing table using insertInto ---")
+print("--- Method 1: Inserting data into an existing table using insertInto ---")
 # This requires the 'default.customers' table to already exist.
 # The schema of the DataFrame must match the table schema.
 # df1.write.insertInto('wholesale.customers', overwrite=True)
@@ -849,7 +849,7 @@ print("--- Method 2: Inserting data into an existing table using insertInto ---"
 # The SerDe (Serializer/Deserializer) for Spark-written CSVs is not
 # compatible with Hive's default TextFile SerDe.
 # ==============================================================================
-print("--- Method 3: Creating a CSV table (PySpark-only access) ---")
+print("--- Method 2: Creating a CSV table (PySpark-only access) ---")
 # Creates a managed table with data stored as CSV files.
 # Hive CLI will not be able to read this table correctly.
 df1.write.saveAsTable(
@@ -862,13 +862,13 @@ df1.write.saveAsTable(
 
 ```python
 # ==============================================================================
-# Method 4: Using Hive Literal Syntax
+# Method 3: Using Hive Literal Syntax
 #
 # This approach uses direct HiveQL statements to create a table that is
 # fully compatible with both Hive and PySpark. It is the proper way to
 # meet a requirement for a TextFile table with a specific delimiter.
 # ==============================================================================
-print("--- Method 4: Creating a TextFile table using HiveQL (interoperable) ---")
+print("--- Method 3: Creating a TextFile table using HiveQL (interoperable) ---")
 # Step 1: Create the table using HiveQL with the specified row format.
 spark.sql("""
    CREATE TABLE default.customers_text (
@@ -892,12 +892,12 @@ spark.sql(
 
 ```python
 # ==============================================================================
-# Method 5: Marrying DataFrame to a Hive Table using a View and Insert Select
+# Method 4: Marrying DataFrame to a Hive Table using a View and Insert Select
 #
 # This is a common pattern to load data from a DataFrame into an existing
 # Hive table, providing full interoperability.
 # ==============================================================================
-print("--- Method 5: Using Insert Select from a temporary view ---")
+print("--- Method 4: Using Insert Select from a temporary view ---")
 # Step 1: Create a temporary view from the DataFrame.
 df1.createOrReplaceTempView("view1")
 
