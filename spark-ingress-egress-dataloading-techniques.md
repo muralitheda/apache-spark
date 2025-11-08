@@ -72,6 +72,51 @@ only showing top 5 rows
 
 ## 2. Reading a CSV data and write into MySQL database using JDBC option
 
+```python
+###### Reading CSV data and write into DataFrame #######
+# Sample Customer Info Data
+"""
+cd /home/hduser/custinfo.csv
+
+4000001,Kristina,Chung,55,Pilot
+4000002,Paige,Chen,77,Teacher
+4000003,Sherri,Melton,34,Firefighter
+4000004,Gretchen,Hill,66,Computer hardware engineer
+4000005,Karen,Puckett,74,Lawyer
+"""
+from pyspark.sql import SparkSession
+from pyspark.sql.types import StructType, StructField, IntegerType, StringType
+
+spark = SparkSession.builder.getOrCreate()
+
+# Schema Definition
+custinfo_schema = StructType([\
+    StructField('custid', IntegerType(), True)\
+    , StructField('first_name', StringType(), True)\
+    , StructField('last_name', StringType(), True)\
+    , StructField('age', IntegerType(), True)\
+    , StructField('profession', StringType(), True)])
+
+# CSV Data Read and storing it in DataFrame
+df1 = spark.read.csv(path="file:///home/hduser/custinfo.csv",header=False,sep=",",inferSchema=False,schema=custinfo_schema)
+df1.show(truncate=False,n=5)
+print(f"[INFO] df1.count() = {df1.count()}")
+```
+```
++-------+----------+---------+---+--------------------------+
+|custid |first_name|last_name|age|profession                |
++-------+----------+---------+---+--------------------------+
+|4000001|Kristina  |Chung    |55 |Pilot                     |
+|4000002|Paige     |Chen     |77 |Teacher                   |
+|4000003|Sherri    |Melton   |34 |Firefighter               |
+|4000004|Gretchen  |Hill     |66 |Computer hardware engineer|
+|4000005|Karen     |Puckett  |74 |Lawyer                    |
++-------+----------+---------+---+--------------------------+
+only showing top 5 rows
+
+[INFO] df1.count() = 9999
+```
+
 ## 3. Schema Evoluation/Growing handling using columner file formats ORC/Parquet
 
 ## 4. Reading a JSON data with various options
