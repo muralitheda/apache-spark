@@ -166,7 +166,24 @@ dbproperties = {
 table_query = "(select * from stocksdb.custinfo order by custid) as tablename"
 df2_db = spark.read.jdbc(url=url1,properties=dbproperties,table=table_query)
 df2_db.show(truncate=False,n=5)
+print("[INFO] Partition wise record count:",df2_db.rdd.glom().map(len).collect())
 ```
+```
++-------+----------+---------+---+--------------------------+
+|custid |first_name|last_name|age|profession                |
++-------+----------+---------+---+--------------------------+
+|4000001|Kristina  |Chung    |55 |Pilot                     |
+|4000002|Paige     |Chen     |77 |Teacher                   |
+|4000003|Sherri    |Melton   |34 |Firefighter               |
+|4000004|Gretchen  |Hill     |66 |Computer hardware engineer|
+|4000005|Karen     |Puckett  |74 |Lawyer                    |
++-------+----------+---------+---+--------------------------+
+only showing top 5 rows
+
+[INFO] Partition wise record count: [3000, 2999, 4000]
+
+```
+
 
 🔹 Spark JDBC Partitioning Example for UpperBound & LowerBound Calculation
 
