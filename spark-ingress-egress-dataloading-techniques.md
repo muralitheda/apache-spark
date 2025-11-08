@@ -44,7 +44,7 @@ df_view.show(5)
 df_view = spark.sql("select _1 as cource, count(*) as no_of_people_interested from course_view group by _1")
 df_view.show(5)
 
-"""
+```
 +----------------+
 |distinct_courses|
 +----------------+
@@ -66,8 +66,6 @@ only showing top 5 rows
 |       AWS|                  52000|
 +----------+-----------------------+
 only showing top 5 rows
-"""
-```
 
 ## 2. Reading a CSV data and write into MySQL database using JDBC option
 
