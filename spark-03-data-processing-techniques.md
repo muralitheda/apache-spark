@@ -52,7 +52,7 @@ from pyspark.sql.session import *
 from pyspark.sql.types import StructType,StructField,StringType,ShortType,LongType
 from pyspark.sql.functions import *
 
-spark=SparkSession.builder.appName("WE45-BB2-Important-Application").enableHiveSupport().getOrCreate()
+spark=SparkSession.builder.appName("Important-Application").enableHiveSupport().getOrCreate()
 
 # 3. Apply custom schema and Permissive Mode
 strt=StructType([StructField("cid",LongType()),StructField("fname",StringType()),
