@@ -798,3 +798,214 @@ df_orc_sql.show(truncate=False)
 
 ## 7. PySpark & Hive Integration : Data Ingestion and Table Creation
 
+```python
+# This script demonstrates various methods for writing data from a PySpark
+# DataFrame into Hive tables, highlighting best practices, limitations,
+# and common use cases.
+from pyspark.sql.types import ShortType, StringType,IntegerType,StructType, StructField
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.getOrCreate()
+
+# Placeholder for the data and schema
+cust_schema = StructType([
+    StructField('cid', IntegerType(), nullable=False),
+    StructField('fname', StringType()),
+    StructField('lname', StringType()),
+    StructField('age', ShortType()),
+    StructField('profession', StringType())
+])
+
+df1 = spark.read.csv(
+     'file:///home/hduser/custinfo.csv',
+     schema=cust_schema,
+     header=False,
+     sep=',',
+     mode='dropmalformed'
+)
+
+df1.show(5)
+```
+
+```python
+# ==============================================================================
+# Method 1: Using the `insertInto` function
+#
+# This method loads data into an existing table. It's less common for initial
+# table creation and data loading, as it does not create a new table schema.
+# ==============================================================================
+print("--- Method 2: Inserting data into an existing table using insertInto ---")
+# This requires the 'default.customers' table to already exist.
+# The schema of the DataFrame must match the table schema.
+# df1.write.insertInto('wholesale.customers', overwrite=True)
+```
+
+```python
+# ==============================================================================
+# Method 2: Storing as CSV (PySpark only)
+#
+# This method creates a table with data stored in CSV format. This table is
+# typically only accessible and readable via PySpark, not directly via HiveQL.
+# The SerDe (Serializer/Deserializer) for Spark-written CSVs is not
+# compatible with Hive's default TextFile SerDe.
+# ==============================================================================
+print("--- Method 3: Creating a CSV table (PySpark-only access) ---")
+# Creates a managed table with data stored as CSV files.
+# Hive CLI will not be able to read this table correctly.
+df1.write.saveAsTable(
+    'default.customers_csv',
+    format='csv',
+    sep=',',
+    mode='overwrite'
+)
+```
+
+```python
+# ==============================================================================
+# Method 4: Using Hive Literal Syntax
+#
+# This approach uses direct HiveQL statements to create a table that is
+# fully compatible with both Hive and PySpark. It is the proper way to
+# meet a requirement for a TextFile table with a specific delimiter.
+# ==============================================================================
+print("--- Method 4: Creating a TextFile table using HiveQL (interoperable) ---")
+# Step 1: Create the table using HiveQL with the specified row format.
+spark.sql("""
+   CREATE TABLE default.customers_text (
+        id INT,
+        fname STRING,
+        lname STRING,
+        age INT,
+        prof STRING
+    )
+    ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+    STORED AS TEXTFILE
+""")
+
+# Step 2: Load the data into the newly created table.
+# Note: 'local' means the file is on the driver's local filesystem.
+
+spark.sql(
+    "LOAD DATA LOCAL INPATH 'file:///home/hduser/custinfo.csv' OVERWRITE INTO TABLE default.customers_text"
+)
+```
+
+```python
+# ==============================================================================
+# Method 5: Marrying DataFrame to a Hive Table using a View and Insert Select
+#
+# This is a common pattern to load data from a DataFrame into an existing
+# Hive table, providing full interoperability.
+# ==============================================================================
+print("--- Method 5: Using Insert Select from a temporary view ---")
+# Step 1: Create a temporary view from the DataFrame.
+df1.createOrReplaceTempView("view1")
+
+# Step 2: Insert data from the view into an existing Hive table.
+# Assumes 'default.customers_text' exists and has a compatible schema.
+spark.sql("INSERT OVERWRITE TABLE default.customers_csv SELECT * FROM view1")
+```
+
+```python
+# ==============================================================================
+# Creating External Tables
+#
+# Demonstrates creating external tables, where the data is not managed by Hive,
+# using both non-partitioned and partitioned approaches.
+# ==============================================================================
+print("--- Creating a non-partitioned external table ---")
+spark.sql("""
+    CREATE EXTERNAL TABLE default.customers_text_ext (
+        id INT,
+        fname STRING,
+        lname STRING,
+        age INT,
+        prof STRING
+    )
+    ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+    STORED AS TEXTFILE 
+    LOCATION '/user/hduser/customer_ext_table'
+""")
+# Loading data into the external table.
+spark.sql(
+    "LOAD DATA LOCAL INPATH 'file:///home/hduser/custinfo.csv' OVERWRITE INTO TABLE default.customers_text_ext"
+)
+
+print("--- Creating a partitioned external table ---")
+spark.sql("""
+    CREATE EXTERNAL TABLE default.customers_text_ext_part (
+        id INT,
+        fname STRING,
+        lname STRING,
+        age INT
+    )
+    PARTITIONED BY (prof STRING)
+    ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+    STORED AS TEXTFILE 
+    LOCATION '/user/hduser/customer_ext_table_part'
+""")
+
+# Note: `LOAD DATA` does not support dynamic partitioning.
+# Instead, we use `INSERT OVERWRITE` with dynamic partitioning enabled.
+spark.sql("SET spark.sql.sources.partitionOverwriteMode=dynamic") # Use Spark setting for partition overwrite mode
+spark.sql("SET hive.exec.dynamic.partition.mode=nonstrict")
+
+# Insert data dynamically into the partitioned table.
+spark.sql(
+    "INSERT OVERWRITE TABLE default.customers_text_ext_part PARTITION(prof) SELECT id, fname, lname, age, prof FROM view1"
+)
+```
+
+```python
+# ==============================================================================
+# Spark and Hive Bucketing Incompatibility
+#
+# This is a critical point about a known limitation. Spark and Hive use
+# different hashing algorithms for bucketing, making them incompatible.
+# ==============================================================================
+print("--- Demonstrating Spark-Hive Bucketing Incompatibility ---")
+# Drop the table if it already exists
+spark.sql("DROP TABLE IF EXISTS default.customers_text_ext_part_bucket")
+
+# Create a bucketed table using HiveQL
+spark.sql("""
+    CREATE EXTERNAL TABLE default.customers_text_ext_part_bucket (
+        id INT,
+        fname STRING,
+        lname STRING,
+        age INT,
+        prof STRING
+    )
+    CLUSTERED BY (id) INTO 10 BUCKETS
+    ROW FORMAT DELIMITED FIELDS TERMINATED BY ','
+    STORED AS TEXTFILE 
+    LOCATION '/user/hduser/customer_ext_table_part_bucket'
+""")
+
+# Attempting to load data from a DataFrame into this table will fail
+# because Spark's bucketing algorithm is not compatible with Hive's.
+# The following line will raise an AnalysisException.
+# spark.sql("INSERT OVERWRITE TABLE wholesale.customers_text_ext_part_bucket SELECT * FROM view1")
+```
+
+```python
+# ==============================================================================
+# Solution for High Performance: Combining Partitioning, Bucketing, and Columnar Format
+#
+# This code shows how to create a highly optimized table entirely within
+# PySpark, which is best for Spark-native queries.
+# Default format is Parquet to saving the data and Snappy codec for compression.
+# ==============================================================================
+print("--- Creating a highly performant table using PySpark native methods ---")
+df1.write.bucketBy(10, 'cid').sortBy("cid").\
+    saveAsTable(
+        'default.customers_part_buck_parquet_snappy',
+        mode='overwrite',
+        partitionBy='profession'
+    )
+
+print("--- Conclusion on PySpark and Hive Integration ---")
+print("PySpark and Hive have strong integration, but it's crucial to understand")
+print("the differences in their internal implementations, especially concerning")
+print("file formats and bucketing algorithms, to ensure interoperability and performance.")
+```
