@@ -619,5 +619,182 @@ df2.show(10, False)  # Display malformed rows for RCA
 ```
 ## 6. ORC & Parquet file formats for Performance Optimization
 
+```python
+# Data SCHEMA MIGRATION from csv (Struct) to ORC/Parquet (serialized-binary) and load into our DATALAKE
+
+# Data
+data =""" 
+stock_symbol,exchange,date,timestamp,price,volume
+AAPL,NYSE,2023-08-01,2023-08-01 09:30:00,195.25,1200000
+GOOGL,NYSE,2023-08-01,2023-08-01 09:30:00,2735.55,850000
+MSFT,NYSE,2023-08-01,2023-08-01 09:30:00,-1,950000
+TSLA,NYSE,2023-08-01,2023-08-01 09:30:00,Inf,1100000
+TSLA,NYSE,2023-08-02,2023-08-02 09:30:00,Inf,1100000
+AMZN,NYSE,na,2023-08-01 09:30:00,134.25,na
+MSFK,NYSE,2023-08-01,2023-08-01 09:30,100.01,950000
+INVALID_ROW_WITHOUT_PROPER_FIELDS 
+"""
+
+from pyspark.sql import SparkSession
+from pyspark.sql.types import DoubleType, StructType,StructField,StringType,IntegerType,DateType,TimestampType
+import os
+
+spark = SparkSession.builder.getOrCreate()
+
+with open("/tmp/nyse_header_options2.csv", "w") as f:
+    f.write(data)
+  
+# Define custom schema
+customschema = StructType([
+    StructField("symbol", StringType(), True),
+    StructField("exchange", StringType(), True),
+    StructField("date", DateType(), True),
+    StructField("timestamp", TimestampType(), True),
+    StructField("price", DoubleType(), True),
+    StructField("volume", IntegerType(), True),
+    StructField("corrupted_data", StringType(), True)
+])
+ 
+# Read CSV with various options
+df1 = spark.read.csv(
+    'file:///tmp/nyse_header_options2.csv',
+    sep=',',  # Column separator used in the CSV file
+    header=True,  # First line of the file contains column headers
+    schema=customschema,  # Custom schema to define data types and structure
+    columnNameOfCorruptRecord='corrupted_data',  # Stores malformed rows in this column
+    encoding='UTF-8',  # Character encoding used to read the file
+    quote="'",  # Defines single quote as the string quoting character
+    comment='-',  # Lines starting with '-' are treated as comments and ignored
+    ignoreTrailingWhiteSpace=True,  # Trims trailing whitespace from fields
+    ignoreLeadingWhiteSpace=True,  # Trims leading whitespace from fields
+    nullValue='na',  # Treats 'na' as a null value
+    nanValue='-1',  # Treats '-1' as NaN (Not a Number)
+    positiveInf='Inf',  # Treats 'Inf' as positive infinity
+    dateFormat='yyyy-MM-dd',  # Format used to parse date fields
+    timestampFormat='yyyy-MM-dd HH:mm:ss',  # Format used to parse timestamp fields
+    maxColumns=40  # Maximum number of columns allowed in the file
+ 
+)
+ 
+# Show first 10 rows
+print("[INFO] Scrubbed Data")
+df1.show(10, False)
+ 
+# Cache and filter corrupted rows
+df2 = df1.cache().where("corrupted_data is null")
+print("[INFO] Cureated Data")
+df2.show(10, False)  
+ 
+```
+
+```python
++---------------------------------+--------+----------+-------------------+--------+-------+---------------------------------------------------+
+|symbol                           |exchange|date      |timestamp          |price   |volume |corrupted_data                                     |
++---------------------------------+--------+----------+-------------------+--------+-------+---------------------------------------------------+
+|AAPL                             |NYSE    |2023-08-01|2023-08-01 09:30:00|195.25  |1200000|NULL                                               |
+|GOOGL                            |NYSE    |2023-08-01|2023-08-01 09:30:00|2735.55 |850000 |NULL                                               |
+|MSFT                             |NYSE    |2023-08-01|2023-08-01 09:30:00|NaN     |950000 |NULL                                               |
+|TSLA                             |NYSE    |2023-08-01|2023-08-01 09:30:00|Infinity|1100000|NULL                                               |
+|AMZN                             |NYSE    |NULL      |2023-08-01 09:30:00|134.25  |NULL   |NULL                                               |
+|MSFK                             |NYSE    |2023-08-01|NULL               |100.01  |950000 |MSFK,NYSE,2023-08-01,2023-08-01 09:30,100.01,950000|
+|INVALID_ROW_WITHOUT_PROPER_FIELDS|NULL    |NULL      |NULL               |NULL    |NULL   |INVALID_ROW_WITHOUT_PROPER_FIELDS                  |
++---------------------------------+--------+----------+-------------------+--------+-------+---------------------------------------------------+
+
+[INFO] Cureated Data
++------+--------+----------+-------------------+--------+-------+--------------+
+|symbol|exchange|date      |timestamp          |price   |volume |corrupted_data|
++------+--------+----------+-------------------+--------+-------+--------------+
+|AAPL  |NYSE    |2023-08-01|2023-08-01 09:30:00|195.25  |1200000|NULL          |
+|GOOGL |NYSE    |2023-08-01|2023-08-01 09:30:00|2735.55 |850000 |NULL          |
+|MSFT  |NYSE    |2023-08-01|2023-08-01 09:30:00|NaN     |950000 |NULL          |
+|TSLA  |NYSE    |2023-08-01|2023-08-01 09:30:00|Infinity|1100000|NULL          |
+|AMZN  |NYSE    |NULL      |2023-08-01 09:30:00|134.25  |NULL   |NULL          |
++------+--------+----------+-------------------+--------+-------+--------------+
+
+```
+
+```python
+# Data SCHEMA MIGRATION from csv (Struct) to ORC (serialized-binary) and load into our DATALAKE
+# Write the clean data in ORC format for internal teams data querying furpose
+df2.write.orc('file:///tmp/stocks_orc',mode='overwrite') #(Datalake) hdfs:///user/hduser/custorcout
+df2.write.orc('file:///tmp/stocks_orc_lzo',mode='ignore',compression='lzo')
+df2.write.orc('file:///tmp/stocks_orc_lzo_part',mode='overwrite',partitionBy='date')
+
+# Reading the data from ORC
+df_orc = spark.read.orc("file:///tmp/stocks_orc_lzo_part")
+print("[INFO] Reading data from ORC")
+df_orc.show(truncate=False)
+ 
+df_orc_sql = spark.sql("select * from orc.`file:///tmp/stocks_orc_lzo_part` where date is not null")
+print("[INFO] Reading data from ORC using SQL")
+df_orc_sql.show(truncate=False)
+```
+
+```python
+[INFO] Reading data from ORC
++------+--------+-------------------+--------+-------+--------------+----------+
+|symbol|exchange|timestamp          |price   |volume |corrupted_data|date      |
++------+--------+-------------------+--------+-------+--------------+----------+
+|GOOGL |NYSE    |2023-08-01 09:30:00|2735.55 |850000 |NULL          |2023-08-01|
+|MSFT  |NYSE    |2023-08-01 09:30:00|NaN     |950000 |NULL          |2023-08-01|
+|TSLA  |NYSE    |2023-08-01 09:30:00|Infinity|1100000|NULL          |2023-08-01|
+|AAPL  |NYSE    |2023-08-01 09:30:00|195.25  |1200000|NULL          |2023-08-01|
+|AMZN  |NYSE    |2023-08-01 09:30:00|134.25  |NULL   |NULL          |NULL      |
++------+--------+-------------------+--------+-------+--------------+----------+
+
+[INFO] Reading data from ORC using SQL
++------+--------+-------------------+--------+-------+--------------+----------+
+|symbol|exchange|timestamp          |price   |volume |corrupted_data|date      |
++------+--------+-------------------+--------+-------+--------------+----------+
+|GOOGL |NYSE    |2023-08-01 09:30:00|2735.55 |850000 |NULL          |2023-08-01|
+|MSFT  |NYSE    |2023-08-01 09:30:00|NaN     |950000 |NULL          |2023-08-01|
+|TSLA  |NYSE    |2023-08-01 09:30:00|Infinity|1100000|NULL          |2023-08-01|
+|AAPL  |NYSE    |2023-08-01 09:30:00|195.25  |1200000|NULL          |2023-08-01|
++------+--------+-------------------+--------+-------+--------------+----------+
+
+```
+
+```python
+# Data SCHEMA MIGRATION from csv (Struct) to PARQUET (serialized-binary) and load into our DATALAKE
+# Write the clean data in ORC format for internal teams data querying furpose
+df2.write.parquet('file:///tmp/stocks_parquet',mode='overwrite') #(Datalake) hdfs:///user/hduser/custorcout
+df2.write.parquet('file:///tmp/stocks_parquet_lzo',mode='ignore',compression='snappy')
+df2.write.parquet('file:///tmp/stocks_parquet_part',mode='overwrite',partitionBy='date')
+ 
+# Reading the data from Parquet
+df_orc = spark.read.parquet("file:///tmp/stocks_parquet_part")
+print("[INFO] Reading data from Parquet")
+df_orc.show(truncate=False)
+ 
+df_orc_sql = spark.sql("select * from parquet.`file:///tmp/stocks_parquet_part` where date is not null")
+print("[INFO] Reading data from Parquet using SQL")
+df_orc_sql.show(truncate=False)
+```
+
+```python
+[INFO] Reading data from Parquet
++------+--------+-------------------+--------+-------+--------------+----------+
+|symbol|exchange|timestamp          |price   |volume |corrupted_data|date      |
++------+--------+-------------------+--------+-------+--------------+----------+
+|GOOGL |NYSE    |2023-08-01 09:30:00|2735.55 |850000 |NULL          |2023-08-01|
+|MSFT  |NYSE    |2023-08-01 09:30:00|NaN     |950000 |NULL          |2023-08-01|
+|TSLA  |NYSE    |2023-08-01 09:30:00|Infinity|1100000|NULL          |2023-08-01|
+|AAPL  |NYSE    |2023-08-01 09:30:00|195.25  |1200000|NULL          |2023-08-01|
+|TSLA  |NYSE    |2023-08-02 09:30:00|Infinity|1100000|NULL          |2023-08-02|
+|AMZN  |NYSE    |2023-08-01 09:30:00|134.25  |NULL   |NULL          |NULL      |
++------+--------+-------------------+--------+-------+--------------+----------+
+
+[INFO] Reading data from Parquet using SQL
++------+--------+-------------------+--------+-------+--------------+----------+
+|symbol|exchange|timestamp          |price   |volume |corrupted_data|date      |
++------+--------+-------------------+--------+-------+--------------+----------+
+|GOOGL |NYSE    |2023-08-01 09:30:00|2735.55 |850000 |NULL          |2023-08-01|
+|MSFT  |NYSE    |2023-08-01 09:30:00|NaN     |950000 |NULL          |2023-08-01|
+|TSLA  |NYSE    |2023-08-01 09:30:00|Infinity|1100000|NULL          |2023-08-01|
+|AAPL  |NYSE    |2023-08-01 09:30:00|195.25  |1200000|NULL          |2023-08-01|
+|TSLA  |NYSE    |2023-08-02 09:30:00|Infinity|1100000|NULL          |2023-08-02|
++------+--------+-------------------+--------+-------+--------------+----------+
+```
+
 ## 7. PySpark & Hive Integration : Data Ingestion and Table Creation
 
