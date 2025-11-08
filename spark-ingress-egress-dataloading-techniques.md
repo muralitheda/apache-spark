@@ -184,7 +184,6 @@ only showing top 5 rows
 
 ```
 
-
 🔹 Spark JDBC Partitioning Example for UpperBound & LowerBound Calculation
 
 | Parameter / Step       | Description / Formula                         | Value / Example                                       |
@@ -206,6 +205,151 @@ only showing top 5 rows
 
 
 ## 3. Schema Evoluation/Growing handling using columner file formats ORC/Parquet
+
+```python
+#ORC/PARQUET Other Properties
+
+#Source is sending data on a daily basis, once in a while the schema of the data is evolving/growing
+  #Example (Day1): exch~stock~price
+  #Example (Day2): exch~stock~price~buyer
+  #Example (Day3): stock~price~seller
+
+#**mergeSchema: Orc/Parquet read all the datafiles headers and merge them into one header
+```
+
+```python
+# Sample data
+day1 = """
+exch~stock~price
+NYSE~CLI~36.3
+NYSE~ABC~36.3
+"""
+
+day2 = """
+exch~stock~price~buyer
+NYSE~CLI~37.3~Alan
+NYSE~ABC~37.3~Harpar
+"""
+
+day3 = """
+stock~price~seller
+CLI~37.3~Jack
+ABC~37.3~Ross
+"""
+
+"""
+/home/hduser/stockdata_csv/
+├── part-00000-01f262bb-27a7-465d-95ca-4fdb6e1986aa-c000.csv
+└── _SUCCESS
+"""
+
+# Write the same data into CSV + Read the CSV + Write into ORC format (Append) + Read the ORC data (MergeSchema=True)
+
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.getOrCreate()
+
+# Day 1: exch~stock~price
+lines_day1 = day1.strip().split('\n')
+header_day1 = lines_day1[0].split('~')
+data_rows_day1 = [line.split('~') for line in lines_day1[1:]]
+df1 = spark.createDataFrame(data_rows_day1, header_day1)
+df1.coalesce(1).write.csv(path="file:///home/hduser/stockdata_csv/",mode="overwrite",sep="~",header=True)
+
+df_csv = spark.read.csv(path="file:///home/hduser/stockdata_csv/",pathGlobFilter="part-*.csv",sep="~",header=True)
+print("[INFO] Day1 : Source CSV data")
+df_csv.show()
+df_csv.coalesce(1).write.orc(path="file:///home/hduser/stockdata_orc/",mode="overwrite") # Overwrite for the first time
+df_orc = spark.read.orc(path="file:///home/hduser/stockdata_orc/",mergeSchema=True) # Schema Evoluation
+print("[INFO] Day1 : ORC data read")
+df_orc.show()
+
+# Day 2: exch~stock~price~buyer
+lines_day2 = day2.strip().split('\n')
+header_day2 = lines_day2[0].split('~')
+data_rows_day2 = [line.split('~') for line in lines_day2[1:]]
+df2 = spark.createDataFrame(data_rows_day2, header_day2)
+df2.coalesce(1).write.csv(path="file:///home/hduser/stockdata_csv/",mode="overwrite",sep="~",header=True)
+
+df_csv = spark.read.csv(path="file:///home/hduser/stockdata_csv/",pathGlobFilter="part-*.csv",sep="~",header=True)
+print("[INFO] Day2 : Source CSV data")
+df_csv.show()
+df_csv.coalesce(1).write.orc(path="file:///home/hduser/stockdata_orc/",mode="append") # Append for the Schema Evoluation
+df_orc = spark.read.orc(path="file:///home/hduser/stockdata_orc/",mergeSchema=True) # Schema Evoluation
+print("[INFO] Day2 : ORC data read with evolved schema")
+df_orc.show()
+
+# Day 3: stock~price~seller
+lines_day3 = day3.strip().split('\n')
+header_day3 = lines_day3[0].split('~')
+data_rows_day3 = [line.split('~') for line in lines_day3[1:]]
+df3 = spark.createDataFrame(data_rows_day3, header_day3)
+print("[INFO] Day3 : Source CSV data")
+df3.show()
+df3.coalesce(1).write.csv(path="file:///home/hduser/stockdata_csv/",mode="overwrite",sep="~",header=True)
+
+df_csv = spark.read.csv(path="file:///home/hduser/stockdata_csv/",pathGlobFilter="part-*.csv",sep="~",header=True)
+df_csv.coalesce(1).write.orc(path="file:///home/hduser/stockdata_orc/",mode="append") # Append for the Schema Evoluation
+df_orc = spark.read.orc(path="file:///home/hduser/stockdata_orc/",mergeSchema=True) # Schema Evoluation
+print("[INFO] Day3 : ORC data read evolved schema")
+df_orc.show()
+```
+```python
+[INFO] Day1 : Source CSV data
++----+-----+-----+
+|exch|stock|price|
++----+-----+-----+
+|NYSE|  CLI| 36.3|
+|NYSE|  ABC| 36.3|
++----+-----+-----+
+
+[INFO] Day1 : ORC data read
++----+-----+-----+
+|exch|stock|price|
++----+-----+-----+
+|NYSE|  CLI| 36.3|
+|NYSE|  ABC| 36.3|
++----+-----+-----+
+
+[INFO] Day2 : Source CSV data
++----+-----+-----+------+
+|exch|stock|price| buyer|
++----+-----+-----+------+
+|NYSE|  CLI| 37.3|  Alan|
+|NYSE|  ABC| 37.3|Harpar|
++----+-----+-----+------+
+
+[INFO] Day2 : ORC data read with evolved schema
++----+-----+-----+------+
+|exch|stock|price| buyer|
++----+-----+-----+------+
+|NYSE|  CLI| 37.3|  Alan|
+|NYSE|  ABC| 37.3|Harpar|
+|NYSE|  CLI| 36.3|  NULL|
+|NYSE|  ABC| 36.3|  NULL|
++----+-----+-----+------+
+
+[INFO] Day3 : Source CSV data
++-----+-----+------+
+|stock|price|seller|
++-----+-----+------+
+|  CLI| 37.3|  Jack|
+|  ABC| 37.3|  Ross|
++-----+-----+------+
+
+[INFO] Day3 : ORC data read evolved schema
++----+-----+-----+------+------+
+|exch|stock|price| buyer|seller|
++----+-----+-----+------+------+
+|NYSE|  CLI| 37.3|  Alan|  NULL|
+|NYSE|  ABC| 37.3|Harpar|  NULL|
+|NYSE|  CLI| 36.3|  NULL|  NULL|
+|NYSE|  ABC| 36.3|  NULL|  NULL|
+|NULL|  CLI| 37.3|  NULL|  Jack|
+|NULL|  ABC| 37.3|  NULL|  Ross|
++----+-----+-----+------+------+
+
+```
+
 
 ## 4. Reading a JSON data with various options
 
