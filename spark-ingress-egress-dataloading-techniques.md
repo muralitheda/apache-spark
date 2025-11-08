@@ -292,6 +292,16 @@ df_csv.coalesce(1).write.orc(path="file:///home/hduser/stockdata_orc/",mode="app
 df_orc = spark.read.orc(path="file:///home/hduser/stockdata_orc/",mergeSchema=True) # Schema Evoluation
 print("[INFO] Day3 : ORC data read evolved schema")
 df_orc.show()
+
+"""
+$ ls -ltr /home/hduser/stockdata_orc/
+total 12
+-rw-r--r--. 1 hduser hduser 538 Nov  8 18:04 part-00000-d84c9a15-a0c3-4028-bcee-1be0e4b4b0c1-c000.snappy.orc
+-rw-r--r--. 1 hduser hduser 665 Nov  8 18:04 part-00000-72318d44-2b2c-4a9d-a3f9-b44367ed6aee-c000.snappy.orc
+-rw-r--r--. 1 hduser hduser   0 Nov  8 18:04 _SUCCESS
+-rw-r--r--. 1 hduser hduser 537 Nov  8 18:04 part-00000-7ececc67-8fa5-44cf-bbb6-943997a24d2c-c000.snappy.orc
+
+"""
 ```
 ```python
 [INFO] Day1 : Source CSV data
