@@ -595,6 +595,28 @@ df2 = df1.cache().where("corrupted_data is not null")
 df2.show(10, False)  # Display malformed rows for RCA
 ```
 
+```python
++---------------------------------+--------+----------+-------------------+--------+-------+---------------------------------------------------+
+|symbol                           |exchange|date      |timestamp          |price   |volume |corrupted_data                                     |
++---------------------------------+--------+----------+-------------------+--------+-------+---------------------------------------------------+
+|AAPL                             |NYSE    |2023-08-01|2023-08-01 09:30:00|195.25  |1200000|NULL                                               |
+|GOOGL                            |NYSE    |2023-08-01|2023-08-01 09:30:00|2735.55 |850000 |NULL                                               |
+|MSFT                             |NYSE    |2023-08-01|2023-08-01 09:30:00|NaN     |950000 |NULL                                               |
+|TSLA                             |NYSE    |2023-08-01|2023-08-01 09:30:00|Infinity|1100000|NULL                                               |
+|AMZN                             |NYSE    |NULL      |2023-08-01 09:30:00|134.25  |NULL   |NULL                                               |
+|MSFK                             |NYSE    |2023-08-01|NULL               |100.01  |950000 |MSFK,NYSE,2023-08-01,2023-08-01 09:30,100.01,950000|
+|INVALID_ROW_WITHOUT_PROPER_FIELDS|NULL    |NULL      |NULL               |NULL    |NULL   |INVALID_ROW_WITHOUT_PROPER_FIELDS                  |
++---------------------------------+--------+----------+-------------------+--------+-------+---------------------------------------------------+
+
+[INFO] Corruputed Rows
++---------------------------------+--------+----------+---------+------+------+---------------------------------------------------+
+|symbol                           |exchange|date      |timestamp|price |volume|corrupted_data                                     |
++---------------------------------+--------+----------+---------+------+------+---------------------------------------------------+
+|MSFK                             |NYSE    |2023-08-01|NULL     |100.01|950000|MSFK,NYSE,2023-08-01,2023-08-01 09:30,100.01,950000|
+|INVALID_ROW_WITHOUT_PROPER_FIELDS|NULL    |NULL      |NULL     |NULL  |NULL  |INVALID_ROW_WITHOUT_PROPER_FIELDS                  |
++---------------------------------+--------+----------+---------+------+------+---------------------------------------------------+
+
+```
 ## 6. ORC & Parquet file formats for Performance Optimization
 
 ## 7. PySpark & Hive Integration : Data Ingestion and Table Creation
