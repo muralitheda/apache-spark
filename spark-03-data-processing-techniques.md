@@ -5,6 +5,19 @@ This example covers the **entire lifecycle** — from reading raw data to publis
 
 ---
 
+## ✅ Summary: Techniques Covered
+
+| Category                 | Techniques Covered                                                                                                             |
+| :----------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
+| **Munging**              | `mode="permissive"`, `columnNameOfCorruptRecord`, `unionByName`, `dropDuplicates`, `na.*`, `trim`, `initcap`, `regexp_replace` |
+| **Enrichment**           | `concat_ws`, `split`, `to_date`, `year`, `month`, `withColumn`, `select`                                                       |
+| **Customization**        | `udf`, `when`, `otherwise`, `cast`, `alias`                                                                                    |
+| **Curation & Analytics** | `groupBy().agg()`, `rank`, `row_number`, `unionByName`, `subtract`                                                             |
+| **Publishing**           | `saveAsTable`, `write.json`, `write.orc`, `write.parquet`, `compression`                                                       |
+
+---
+
+
 ## 🪣 Stage 1 — Data Munging (Discovery → Structuring → Cleansing → Standardization)
 
 ```python
@@ -206,18 +219,6 @@ df_ranked.write.mode("overwrite").option("compression", "snappy") \
 * `saveAsTable`, `json`, `orc`, `parquet`
 * Partitioning, compression options
 * Discovery → Outbound → Performance formats
-
----
-
-## ✅ Summary: Techniques Covered
-
-| Category                 | Techniques Covered                                                                                                             |
-| :----------------------- | :----------------------------------------------------------------------------------------------------------------------------- |
-| **Munging**              | `mode="permissive"`, `columnNameOfCorruptRecord`, `unionByName`, `dropDuplicates`, `na.*`, `trim`, `initcap`, `regexp_replace` |
-| **Enrichment**           | `concat_ws`, `split`, `to_date`, `year`, `month`, `withColumn`, `select`                                                       |
-| **Customization**        | `udf`, `when`, `otherwise`, `cast`, `alias`                                                                                    |
-| **Curation & Analytics** | `groupBy().agg()`, `rank`, `row_number`, `unionByName`, `subtract`                                                             |
-| **Publishing**           | `saveAsTable`, `write.json`, `write.orc`, `write.parquet`, `compression`                                                       |
 
 ---
 
