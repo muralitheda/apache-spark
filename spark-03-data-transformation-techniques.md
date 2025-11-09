@@ -73,7 +73,7 @@ df_raw = (spark.read
 df_raw.cache()
 
 # Step 4: Identify and write corrupted data (Reject Handling)
-df_reject = df_raw.filter(col("corrupt_row").isNotNull())
+df_reject = df_raw.filter(col("corrupt_row").isNotNull()) # [OR] df_raw.filter("corrupt_row is not null")
 df_reject.write.mode("overwrite").csv("file:///home/hduser/sparkdata/rejects")
 
 # Step 5: Active Munging — Structuring and Schema Merging
