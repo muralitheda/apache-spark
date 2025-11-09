@@ -805,7 +805,7 @@ df_orc_sql.show(truncate=False)
 from pyspark.sql.types import ShortType, StringType,IntegerType,StructType, StructField
 from pyspark.sql import SparkSession
 
-spark = SparkSession.builder.getOrCreate()
+spark = SparkSession.builder.enableHiveSupport().getOrCreate()
 
 # Placeholder for the data and schema
 cust_schema = StructType([
@@ -837,7 +837,13 @@ df1.show(5)
 print("--- Method 1: Inserting data into an existing table using insertInto ---")
 # This requires the 'default.customers' table to already exist.
 # The schema of the DataFrame must match the table schema.
-# df1.write.insertInto('wholesale.customers', overwrite=True)
+
+df1.write.insertInto('wholesale.customers', overwrite=True)
+
+"""
+#hive
+create table wholesale.customers(cid int, fname string, lname string, age int, profession string);
+"""
 ```
 
 ```python
@@ -858,6 +864,10 @@ df1.write.saveAsTable(
     sep=',',
     mode='overwrite'
 )
+
+df_fetch = spark.sql("select * from default.customers_csv")
+print(df_fetch.show(3))
+
 ```
 
 ```python
