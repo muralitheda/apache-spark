@@ -960,7 +960,7 @@ spark.sql(
 # ==============================================================================
 # Spark and Hive Bucketing Incompatibility
 #
-# This is a critical point about a known limitation. Spark and Hive use
+# This is a critical point about a known limitation. Spark (MurMurHash3 algorithm) and Hive (internal hash algorithm) use
 # different hashing algorithms for bucketing, making them incompatible.
 # ==============================================================================
 print("--- Demonstrating Spark-Hive Bucketing Incompatibility ---")
