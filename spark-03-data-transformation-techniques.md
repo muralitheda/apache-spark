@@ -44,7 +44,7 @@ from pyspark.sql.window import Window
 
 # Step 1: Initialize Spark Session
 spark = (SparkSession.builder
-         .appName("FullStackDataEngineer_BB2")
+         .appName("FullStackDataEngineer")
          .enableHiveSupport()
          .getOrCreate())
 
@@ -67,19 +67,19 @@ df_raw = (spark.read
           .option("mode", "permissive")
           .option("columnNameOfCorruptRecord", "corrupt_row")
           .schema(cust_schema)
-          .csv("file:///home/hduser/sparkdata/customers"))
+          .csv("file:///home/hduser/sparkdata/customers-week-01.csv"))
 
 # Cache for reuse
 df_raw.cache()
 
 # Step 4: Identify and write corrupted data (Reject Handling)
 df_reject = df_raw.filter(col("corrupt_row").isNotNull())
-df_reject.write.mode("overwrite").csv("file:///home/hduser/rejects")
+df_reject.write.mode("overwrite").csv("file:///home/hduser/sparkdata/rejects")
 
 # Step 5: Active Munging — Structuring and Schema Merging
 # Simulate multiple datasets
 df_extra = (spark.read.option("header", True)
-            .csv("file:///home/hduser/sparkdata/customers_new"))
+            .csv("file:///home/hduser/sparkdata/customers-week-02"))
 
 df_combined = df_raw.unionByName(df_extra, allowMissingColumns=True)
 
@@ -97,7 +97,7 @@ df_std = (df_clean
           .withColumn("city", initcap(trim(col("city"))))
           .withColumn("doj", regexp_replace("doj", "-", "/"))   # Uniform date format
           .withColumn("created_ts", current_timestamp())
-          .select("cid", "fname", "lname", "prof", "age", "city", "salary", "doj", "created_ts"))
+          .select("cid", "fname", "lname", "prof", "age", "city", "salary", "doj", "created_ts","gender","dept"))
 ```
 
 ✅ **Covers:**
@@ -106,6 +106,14 @@ df_std = (df_clean
 * `unionByName(allowMissingColumns=True)`
 * `dropDuplicates`, `na.drop`, `na.fill`, `na.replace`
 * `trim`, `initcap`, `regexp_replace`, `withColumn`, `select`
+
+| Mode                       | Behavior                                                            | Keeps Corrupt Rows? | Typical Usage Stage                   | Pros                                     | Cons                              |
+| :------------------------- | :------------------------------------------------------------------ | :-----------------: | :------------------------------------ | :--------------------------------------- | :-------------------------------- |
+| **PERMISSIVE** *(default)* | Parses all possible rows; puts bad ones in `_corrupt_record` column |        ✅ Yes        | **Passive Munging (Audit)**           | Non-destructive, best for data profiling | Requires explicit filtering later |
+| **DROPMALFORMED**          | Skips malformed rows silently                                       |         ❌ No        | **Active Munging (Cleanse)**          | Quick, simple                            | Data loss (no audit)              |
+| **FAILFAST**               | Stops immediately on first malformed row                            |         ❌ No        | **Data Validation / Production Gate** | Guarantees schema compliance             | Stops full read on single issue   |
+
+
 
 ---
 
