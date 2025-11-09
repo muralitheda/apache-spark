@@ -5,7 +5,7 @@ This example covers the **entire lifecycle** — from reading raw data to publis
 
 ---
 
-The following life cycle captures key ETL and Data Engineering stages — from governance to publishing.
+## The following life cycle captures key ETL and Data Engineering stages — from governance to publishing.
 
 |  Stage | Process Name                             | Description                                                                                |
 | :----: | :--------------------------------------- | :----------------------------------------------------------------------------------------- |
