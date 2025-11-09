@@ -5,6 +5,19 @@ This example covers the **entire lifecycle** — from reading raw data to publis
 
 ---
 
+The following life cycle captures key ETL and Data Engineering stages — from governance to publishing.
+
+|  Stage | Process Name                             | Description                                                                                |
+| :----: | :--------------------------------------- | :----------------------------------------------------------------------------------------- |
+| **1.** | **Data Munging**                         | Transform raw data into a **tidy, usable** format for enrichment, analytics, or reporting. |
+| **2.** | **Data Enrichment**                      | Enhance datasets with derived or detailed fields to improve analytical depth.              |
+| **3.** | **Data Customization & Processing**      | Apply domain-specific business logic through reusable frameworks.                          |
+| **4.** | **Data Curation & Analytics**            | Perform transformations, aggregations, and summarizations for insights.                    |
+| **5.** | **Data Wrangling**                       | Consolidate enrichment and transformation steps to produce clean, usable data.             |
+| **6.** | **Data Publishing & Consumption (LOAD)** | Deliver curated data as **Data Products** for reporting, export, or downstream processing. |
+
+---
+
 ## ✅ Summary: Techniques Covered
 
 | Category                 | Techniques Covered                                                                                                             |
