@@ -1,5 +1,5 @@
 
-# 🧩 End-to-End Example: Transformation & Analytics using PySpark
+# Data Transformation & Analytics using PySpark
 
 This example covers the **entire lifecycle** — from reading raw data to publishing curated results, implementing every key concept listed in the program.
 
